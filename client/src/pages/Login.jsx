@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,8 +21,12 @@ const Login = ({ setIsAuthenticated }) => {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('displayName', data.user.name || data.user.username);
+        localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+        setCurrentUser?.(data.user);
         setIsAuthenticated(true);
-        navigate('/');
+        navigate('/dashboard');
       } else {
         setError(data.message);
       }
@@ -80,7 +84,7 @@ const Login = ({ setIsAuthenticated }) => {
               <input
                 type="text"
                 className="input-field"
-                placeholder="默认: admin"
+                placeholder="请输入账号"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -91,7 +95,7 @@ const Login = ({ setIsAuthenticated }) => {
               <input
                 type="password"
                 className="input-field"
-                placeholder="默认: 123456"
+                placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

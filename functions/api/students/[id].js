@@ -3,7 +3,7 @@ import { requireAuth } from '../../_lib/auth.js';
 
 export async function onRequestPut({ request, env, params }) {
   try {
-    const unauthorized = requireAuth(request, env);
+    const unauthorized = await requireAuth(request, env);
     if (unauthorized) return unauthorized;
 
     const db = requireDb(env);
@@ -35,7 +35,7 @@ export async function onRequestPut({ request, env, params }) {
 
 export async function onRequestDelete({ request, env, params }) {
   try {
-    const unauthorized = requireAuth(request, env);
+    const unauthorized = await requireAuth(request, env);
     if (unauthorized) return unauthorized;
 
     const db = requireDb(env);

@@ -8,9 +8,7 @@ import StudentList from './pages/StudentList';
 import CourseManagement from './pages/CourseManagement';
 import GradeAnalysis from './pages/GradeAnalysis';
 import Settings from './pages/Settings';
-import Architecture from './pages/Architecture';
-import ConcurrencyLab from './pages/ConcurrencyLab';
-import DeadlockLab from './pages/DeadlockLab';
+import AdminAccounts from './pages/AdminAccounts';
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -19,27 +17,37 @@ const ProtectedRoute = ({ isAuthenticated, children }) => {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
+  const [currentUser, setCurrentUser] = useState(() => ({
+    username: localStorage.getItem('username') || '',
+    name: localStorage.getItem('displayName') || '',
+    isAdmin: localStorage.getItem('isAdmin') === 'true',
+  }));
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} setCurrentUser={setCurrentUser} />} />
         <Route path="/" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Layout setIsAuthenticated={setIsAuthenticated} />
+            <Layout
+              setIsAuthenticated={setIsAuthenticated}
+              currentUser={currentUser}
+              setCurrentUser={setCurrentUser}
+            />
           </ProtectedRoute>
         }>
-          <Route index element={<Navigate to="/architecture" replace />} />
-          <Route path="architecture" element={<Architecture />} />
-          <Route path="concurrency-lab" element={<ConcurrencyLab />} />
-          <Route path="deadlock-lab" element={<DeadlockLab />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<StudentList />} />
           <Route path="courses" element={<CourseManagement />} />
           <Route path="grades" element={<GradeAnalysis />} />
           <Route path="settings" element={<Settings />} />
+          <Route
+            path="admin-accounts"
+            element={currentUser?.username === 'admin' ? <AdminAccounts /> : <Navigate to="/dashboard" replace />}
+          />
         </Route>
-        <Route path="*" element={<Navigate to={isAuthenticated ? '/architecture' : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
   );

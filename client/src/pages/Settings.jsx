@@ -1,72 +1,205 @@
-import { Shield, Globe, Bell } from 'lucide-react';
+import { useState } from 'react';
+import { KeyRound, Save, UserPlus, X } from 'lucide-react';
+import { jsonHeaders } from '../api';
+
+const emptyAdminForm = { username: '', password: '' };
+
+const modalBackdropStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 2000,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(0, 0, 0, 0.65)',
+  backdropFilter: 'blur(6px)',
+};
+
+const modalStyle = {
+  width: 'min(460px, calc(100vw - 32px))',
+  background: 'var(--bg-surface-solid)',
+  border: '1px solid var(--border-color)',
+  borderRadius: '12px',
+  boxShadow: '0 24px 80px rgba(0,0,0,0.55)',
+  overflow: 'hidden',
+};
 
 const Settings = () => {
+  const [activeModal, setActiveModal] = useState(null);
+  const [adminForm, setAdminForm] = useState(emptyAdminForm);
+  const [newPassword, setNewPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setAdminForm(emptyAdminForm);
+    setNewPassword('');
+    setError('');
+  };
+
+  const saveAdmin = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: jsonHeaders(),
+        body: JSON.stringify(adminForm),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '保存失败');
+
+      setMessage('管理员账号已保存');
+      closeModal();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changePassword = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/me/password', {
+        method: 'PUT',
+        headers: jsonHeaders(),
+        body: JSON.stringify({ password: newPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '修改失败');
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', data.user.username);
+      localStorage.setItem('displayName', data.user.name || data.user.username);
+      localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+      setMessage('密码已修改');
+      closeModal();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px' }}>
+    <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '760px' }}>
       <div>
-        <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>系统底层偏好设置 (演示模块)</h1>
-        <p style={{ color: 'var(--text-muted)' }}>管理集群参数、安全策略及全局中间件配置</p>
+        <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>系统设置</h1>
+        <p style={{ color: 'var(--text-muted)' }}>账号安全</p>
       </div>
 
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
-          <div style={{ padding: '16px 24px', borderBottom: '2px solid var(--primary)', color: 'var(--primary)', fontWeight: 500, cursor: 'pointer' }}>通用配置</div>
-          <div style={{ padding: '16px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>安全与审计</div>
-          <div style={{ padding: '16px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>并发控制策略</div>
-          <div style={{ padding: '16px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>多租户接口</div>
+      {(message || error) && (
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: '8px',
+            border: `1px solid ${error ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+            background: error ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+            color: error ? 'var(--danger)' : 'var(--success)',
+          }}
+        >
+          {error || message}
         </div>
+      )}
 
-        <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <div style={{ flexShrink: 0, padding: '12px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', borderRadius: '12px', height: 'fit-content' }}>
-              <Globe size={24} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>集群部署节点</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>配置当前系统连接的底层数据库集群节点区域。</p>
-              <select className="input-field" style={{ width: '300px' }} defaultValue="cn-east">
-                <option value="cn-east">华东主节点 (cn-east-1) - 当前</option>
-                <option value="cn-south">华南灾备节点 (cn-south-1)</option>
-              </select>
-            </div>
-          </div>
+      <div className="glass-panel" style={{ padding: '28px', display: 'grid', gap: '16px' }}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => setActiveModal('add')}
+          style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
+        >
+          <UserPlus size={18} /> 添加管理员
+        </button>
 
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <div style={{ flexShrink: 0, padding: '12px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', borderRadius: '12px', height: 'fit-content' }}>
-              <Shield size={24} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>JWT 签发策略</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>设置 Token 存活时间及无状态会话的刷新阈值。</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <input type="number" className="input-field" style={{ width: '100px' }} defaultValue={72} />
-                <span style={{ color: 'var(--text-muted)' }}>小时过期</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <div style={{ flexShrink: 0, padding: '12px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', borderRadius: '12px', height: 'fit-content' }}>
-              <Bell size={24} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>系统级告警降级</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>当多线程压测负载过高时，是否允许自动降级丢弃非核心日志。</p>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
-                <span>开启高可用服务熔断保护</span>
-              </label>
-            </div>
-          </div>
-
-        </div>
-        
-        <div style={{ padding: '24px 32px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
-          <button className="btn-secondary">还原默认配置</button>
-          <button className="btn-primary">保存全局设置</button>
-        </div>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => setActiveModal('password')}
+          style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
+        >
+          <KeyRound size={18} /> 修改密码
+        </button>
       </div>
+
+      {activeModal === 'add' && (
+        <div style={modalBackdropStyle}>
+          <form style={modalStyle} onSubmit={saveAdmin}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.15rem' }}>添加管理员</h2>
+              <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', display: 'grid', gap: '16px' }}>
+              <input
+                className="input-field"
+                placeholder="输入账号"
+                value={adminForm.username}
+                onChange={(event) => setAdminForm({ ...adminForm, username: event.target.value })}
+                required
+              />
+              <input
+                className="input-field"
+                type="password"
+                placeholder="输入密码"
+                value={adminForm.password}
+                onChange={(event) => setAdminForm({ ...adminForm, password: event.target.value })}
+                required
+              />
+              {error && <div style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</div>}
+            </div>
+
+            <div style={{ padding: '18px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" className="btn-primary" disabled={saving}>
+                <Save size={18} /> 保存
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {activeModal === 'password' && (
+        <div style={modalBackdropStyle}>
+          <form style={modalStyle} onSubmit={changePassword}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.15rem' }}>请输入新密码</h2>
+              <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', display: 'grid', gap: '16px' }}>
+              <input
+                className="input-field"
+                type="password"
+                placeholder="请输入新密码"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                required
+              />
+              {error && <div style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</div>}
+            </div>
+
+            <div style={{ padding: '18px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" className="btn-primary" disabled={saving}>
+                <Save size={18} /> 保存
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

@@ -43,7 +43,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
-    const unauthorized = requireAuth(request, env);
+    const unauthorized = await requireAuth(request, env);
     if (unauthorized) return unauthorized;
 
     const db = requireDb(env);

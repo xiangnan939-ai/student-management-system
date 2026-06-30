@@ -7,48 +7,46 @@ import {
   BookOpen, 
   BarChart3, 
   Settings,
+  Shield,
   Bell,
   Search,
   ChevronLeft,
   ChevronRight,
-  Presentation,
-  Cpu,
-  Layers
 } from 'lucide-react';
 
-const Layout = ({ setIsAuthenticated }) => {
+const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-
-
+  const username = currentUser?.username || localStorage.getItem('username') || '管理员';
+  const isAdmin = username === 'admin';
 
   const navItems = [
-    { path: '/architecture', name: '🎓 架构白皮书', icon: Presentation },
-    { path: '/concurrency-lab', name: '🧪 并发实验室', icon: Cpu },
-    { path: '/deadlock-lab', name: '🔄 死锁交叉演练', icon: Layers },
     { path: '/dashboard', name: '系统看板', icon: LayoutDashboard },
     { path: '/students', name: '学籍管理', icon: Users },
     { path: '/courses', name: '课程管理', icon: BookOpen },
     { path: '/grades', name: '成绩分析', icon: BarChart3 },
     { path: '/settings', name: '系统设置', icon: Settings },
+    ...(isAdmin ? [{ path: '/admin-accounts', name: '账号管理', icon: Shield }] : []),
   ];
 
   // 面包屑名称映射
   const breadcrumbMap = {
-    '/architecture': '答辩演示模式 / 系统架构拓扑图',
-    '/concurrency-lab': '答辩演示模式 / OS 并发控制实验室',
-    '/deadlock-lab': '答辩演示模式 / 死锁防御实验室',
     '/dashboard': '系统看板',
     '/students': '学籍管理 / 学生列表',
     '/courses': '课程管理 / 课程分配体系',
     '/grades': '成绩分析 / 高阶图表',
-    '/settings': '系统设置 / 偏好与日志'
+    '/settings': '系统设置 / 账号安全',
+    '/admin-accounts': '账号管理 / 全部管理员'
   };
 
   const currentPathName = breadcrumbMap[location.pathname] || '仪表盘';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('displayName');
+    localStorage.removeItem('isAdmin');
+    setCurrentUser?.({ username: '', name: '', isAdmin: false });
     setIsAuthenticated(false);
   };
 
@@ -144,11 +142,11 @@ const Layout = ({ setIsAuthenticated }) => {
         {/* 底部用户信息 */}
         <div style={{ padding: '24px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
-            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin" alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
           </div>
           {!collapsed && (
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Super Admin</div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{username}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span> Online
               </div>
