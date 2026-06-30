@@ -43,10 +43,11 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
     localStorage.removeItem('username');
     localStorage.removeItem('displayName');
     localStorage.removeItem('isAdmin');
-    setCurrentUser?.({ username: '', name: '', isAdmin: false });
+    setCurrentUser?.({ role: '', username: '', name: '', isAdmin: false });
     setIsAuthenticated(false);
   };
 

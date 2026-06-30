@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
+  const [loginType, setLoginType] = useState('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,8 +13,10 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(loginType === 'student' ? '/api/student/login' : '/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -21,12 +24,13 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role || loginType);
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('displayName', data.user.name || data.user.username);
         localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
-        setCurrentUser?.(data.user);
+        setCurrentUser?.({ ...data.user, role: data.user.role || loginType, isAdmin: data.user.isAdmin || false });
         setIsAuthenticated(true);
-        navigate('/dashboard');
+        navigate((data.user.role || loginType) === 'student' ? '/student/course-selection' : '/dashboard');
       } else {
         setError(data.message);
       }
@@ -35,6 +39,13 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const switchLoginType = (type) => {
+    setLoginType(type);
+    setUsername('');
+    setPassword('');
+    setError('');
   };
 
   return (
@@ -75,16 +86,51 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         <div className="glass-panel fade-in-up delay-100" style={{ padding: '48px', width: '100%', maxWidth: '440px' }}>
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 600, marginBottom: '8px' }}>欢迎回来</h2>
-            <p style={{ color: 'var(--text-dim)' }}>请输入您的管理员凭证</p>
+            <p style={{ color: 'var(--text-dim)' }}>{loginType === 'student' ? '请输入学号和密码' : '请输入您的管理员凭证'}</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '24px' }}>
+            <button
+              type="button"
+              onClick={() => switchLoginType('admin')}
+              style={{
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                cursor: 'pointer',
+                color: loginType === 'admin' ? 'white' : 'var(--text-muted)',
+                background: loginType === 'admin' ? 'var(--primary)' : 'transparent',
+                fontWeight: 600,
+              }}
+            >
+              管理员登录
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLoginType('student')}
+              style={{
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                cursor: 'pointer',
+                color: loginType === 'student' ? 'white' : 'var(--text-muted)',
+                background: loginType === 'student' ? 'var(--success)' : 'transparent',
+                fontWeight: 600,
+              }}
+            >
+              学生登录
+            </button>
           </div>
           
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 500 }}>用户名</label>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 500 }}>
+                {loginType === 'student' ? '学号' : '用户名'}
+              </label>
               <input
                 type="text"
                 className="input-field"
-                placeholder="请输入账号"
+                placeholder={loginType === 'student' ? '请输入学号' : '请输入账号'}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -109,12 +155,12 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
             )}
             
             <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '12px', padding: '14px' }}>
-              {loading ? '正在验证...' : '安全登录'} <ArrowRight size={18} />
+              {loading ? '正在验证...' : loginType === 'student' ? '进入学生端' : '安全登录'} <ArrowRight size={18} />
             </button>
           </form>
           
           <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-            <p>本系统仅供授权的高校教职工使用</p>
+            <p>{loginType === 'student' ? '学生默认密码为 123456' : '本系统仅供授权的高校教职工使用'}</p>
           </div>
         </div>
       </div>

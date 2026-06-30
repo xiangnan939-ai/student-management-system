@@ -35,9 +35,22 @@ export async function ensureDatabase(db) {
       gender TEXT NOT NULL,
       age INTEGER NOT NULL,
       major TEXT NOT NULL,
-      phone TEXT
+      phone TEXT,
+      password TEXT NOT NULL DEFAULT '123456',
+      password_changed_at TEXT
     )
   `).run();
+
+  const columns = await db.prepare('PRAGMA table_info(students)').all();
+  const columnNames = new Set((columns.results || []).map((column) => column.name));
+
+  if (!columnNames.has('password')) {
+    await db.prepare("ALTER TABLE students ADD COLUMN password TEXT NOT NULL DEFAULT '123456'").run();
+  }
+
+  if (!columnNames.has('password_changed_at')) {
+    await db.prepare('ALTER TABLE students ADD COLUMN password_changed_at TEXT').run();
+  }
 
   const row = await db.prepare('SELECT COUNT(*) AS count FROM students').first();
   if (row?.count > 0) return;
@@ -78,4 +91,80 @@ export function validateStudent(input) {
   }
 
   return { student: { id, name, gender, age, major, phone } };
+}
+
+export function validateCourse(input) {
+  const name = String(input.name || '').trim();
+  const teacher = String(input.teacher || '').trim();
+  const time = String(input.time || '').trim();
+  const location = String(input.location || '').trim();
+  const credit = Number.parseFloat(input.credit);
+  const capacity = Number.parseInt(input.capacity, 10);
+  const description = String(input.description || '').trim();
+
+  if (!name || !teacher || !time || !location) {
+    return { error: '课程名称、任课教师、上课时间和地点不能为空' };
+  }
+
+  if (!Number.isFinite(credit) || credit <= 0 || credit > 20) {
+    return { error: '学分范围不合法' };
+  }
+
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 10000) {
+    return { error: '人数上限范围不合法' };
+  }
+
+  return { course: { name, teacher, time, location, credit, capacity, description } };
+}
+
+export async function ensureCourseStore(db) {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS courses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      teacher TEXT NOT NULL,
+      time TEXT NOT NULL,
+      location TEXT NOT NULL,
+      credit REAL NOT NULL,
+      capacity INTEGER NOT NULL,
+      description TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
+
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS student_courses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_id TEXT NOT NULL,
+      course_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(student_id, course_id)
+    )
+  `).run();
+}
+
+export async function listCoursesWithCounts(db) {
+  await ensureCourseStore(db);
+
+  const rows = await db.prepare(`
+    SELECT
+      c.id,
+      c.name,
+      c.teacher,
+      c.time,
+      c.location,
+      c.credit,
+      c.capacity,
+      c.description,
+      c.created_at,
+      c.updated_at,
+      COUNT(sc.id) AS selected_count
+    FROM courses c
+    LEFT JOIN student_courses sc ON sc.course_id = c.id
+    GROUP BY c.id
+    ORDER BY c.id DESC
+  `).all();
+
+  return rows.results || [];
 }
