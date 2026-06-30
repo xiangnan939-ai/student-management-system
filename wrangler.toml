@@ -1,0 +1,8 @@
+name = "student-management-system"
+compatibility_date = "2026-06-30"
+pages_build_output_dir = "client/dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "student-os-db"
+database_id = "948d3c1c-93e1-46c4-ad56-637275405937"
