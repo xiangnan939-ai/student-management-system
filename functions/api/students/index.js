@@ -1,5 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb, validateStudent } from '../../_lib/db.js';
-import { requireAuth } from '../../_lib/auth.js';
+import { requireUser } from '../../_lib/auth.js';
+import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -43,8 +44,8 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
-    const unauthorized = await requireAuth(request, env);
-    if (unauthorized) return unauthorized;
+    const auth = await requireUser(request, env);
+    if (auth.response) return auth.response;
 
     const db = requireDb(env);
     await ensureDatabase(db);
@@ -58,8 +59,20 @@ export async function onRequestPost({ request, env }) {
       .bind(student.id, student.name, student.gender, student.age, student.major, student.phone)
       .run();
 
+    await writeSystemLog(db, {
+      level: 'success',
+      category: 'student',
+      message: `新增学生档案：${student.id} ${student.name}`,
+      actor: auth.account.username,
+    });
+
     return json({ message: '新增成功', id: student.id }, { status: 201 });
   } catch (error) {
+    try {
+      const db = requireDb(env);
+      await writeErrorLog(db, error, { message: '新增学生档案失败', category: 'student' });
+    } catch {}
+
     const status = String(error.message).includes('UNIQUE') ? 409 : 500;
     return json({ error: error.message }, { status });
   }

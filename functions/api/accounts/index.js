@@ -7,6 +7,7 @@ import {
   publicAccount,
   validateAccountInput,
 } from '../../_lib/accounts.js';
+import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -36,8 +37,20 @@ export async function onRequestPost({ request, env }) {
     if (error) return json({ error }, { status: 400 });
 
     const created = await createAccount(db, account);
+    await writeSystemLog(db, {
+      level: 'success',
+      category: 'account',
+      message: `新增管理员账号：${created.username}`,
+      actor: auth.account?.username || 'admin',
+    });
+
     return json({ message: '保存成功', account: publicAccount(created) }, { status: 201 });
   } catch (error) {
+    try {
+      const db = requireDb(env);
+      await writeErrorLog(db, error, { message: '新增管理员账号失败', category: 'account' });
+    } catch {}
+
     const message = String(error.message || '');
     const status = message.includes('UNIQUE') ? 409 : 500;
     return json({ error: status === 409 ? '该账号已存在' : error.message }, { status });

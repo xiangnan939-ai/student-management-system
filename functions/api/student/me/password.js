@@ -1,5 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../../_lib/db.js';
 import { requireStudent, studentSessionToken } from '../../../_lib/auth.js';
+import { writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
 export async function onRequestPut({ request, env }) {
   try {
@@ -24,6 +25,13 @@ export async function onRequestPut({ request, env }) {
       .bind(nextPassword, auth.student.id)
       .first();
 
+    await writeSystemLog(db, {
+      level: 'success',
+      category: 'student',
+      message: `学生修改登录密码：${updated.id} ${updated.name}`,
+      actor: updated.id,
+    });
+
     return json({
       message: '密码已修改',
       token: studentSessionToken(updated),
@@ -35,6 +43,11 @@ export async function onRequestPut({ request, env }) {
       },
     });
   } catch (error) {
+    try {
+      const db = requireDb(env);
+      await writeErrorLog(db, error, { message: '学生修改密码失败', category: 'student' });
+    } catch {}
+
     return json({ error: error.message }, { status: 500 });
   }
 }

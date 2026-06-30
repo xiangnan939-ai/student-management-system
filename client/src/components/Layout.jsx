@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -9,14 +9,17 @@ import {
   Settings,
   Shield,
   Bell,
-  Search,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { authHeaders } from '../api';
 
 const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertLoading, setAlertLoading] = useState(false);
+  const [alerts, setAlerts] = useState([]);
   const username = currentUser?.username || localStorage.getItem('username') || '管理员';
   const isAdmin = username === 'admin';
 
@@ -40,6 +43,60 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   };
 
   const currentPathName = breadcrumbMap[location.pathname] || '仪表盘';
+
+  const fetchAlerts = async (limit = 20) => {
+    setAlertLoading(true);
+
+    try {
+      const response = await fetch(`/api/system-logs?levels=error,crash&limit=${limit}`, {
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '系统告警读取失败');
+      setAlerts(data.data || []);
+    } catch (error) {
+      setAlerts([{
+        id: 'local-alert-error',
+        level: 'error',
+        category: 'client',
+        message: error.message,
+        detail: '',
+        actor: 'browser',
+        created_at: new Date().toLocaleString(),
+      }]);
+    } finally {
+      setAlertLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadInitialAlerts = async () => {
+      try {
+        const response = await fetch('/api/system-logs?levels=error,crash&limit=1', {
+          headers: authHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '系统告警读取失败');
+        if (!ignore) setAlerts(data.data || []);
+      } catch {
+        if (!ignore) setAlerts([]);
+      }
+    };
+
+    loadInitialAlerts();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const handleBellClick = () => {
+    const nextOpen = !alertOpen;
+    setAlertOpen(nextOpen);
+    if (nextOpen) fetchAlerts(20);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -181,30 +238,71 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           {/* 右侧工具栏 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
-              <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input 
-                type="text" 
-                placeholder="全局搜索 (Ctrl+K)" 
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--border-color)',
-                  color: 'white',
-                  padding: '8px 16px 8px 36px',
-                  borderRadius: '99px',
-                  fontSize: '0.85rem',
-                  width: '240px',
-                  transition: 'all 0.2s',
-                  outline: 'none'
-                }}
-                onFocus={(e) => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.borderColor = 'var(--border-highlight)'; }}
-                onBlur={(e) => { e.target.style.background = 'rgba(255,255,255,0.05)'; e.target.style.borderColor = 'var(--border-color)'; }}
-              />
+              <button
+                onClick={handleBellClick}
+                title="系统报错和崩溃记录"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }}
+              >
+                <Bell size={20} />
+                {alerts.length > 0 && (
+                  <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', background: 'var(--danger)', borderRadius: '50%', border: '2px solid var(--bg-dark)' }}></span>
+                )}
+              </button>
+
+              {alertOpen && (
+                <div
+                  className="glass-panel"
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '34px',
+                    width: '380px',
+                    maxHeight: '460px',
+                    overflowY: 'auto',
+                    padding: '16px',
+                    zIndex: 120,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.98rem', fontWeight: 650 }}>系统报错与崩溃记录</div>
+                      <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '2px' }}>来自系统日志数据库</div>
+                    </div>
+                    <button type="button" className="btn-secondary" onClick={() => fetchAlerts(20)} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
+                      刷新
+                    </button>
+                  </div>
+
+                  {alertLoading ? (
+                    <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>读取中...</div>
+                  ) : alerts.length > 0 ? (
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {alerts.map((alert) => (
+                        <div key={alert.id} style={{ padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'rgba(237,241,246,0.035)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                            <span className={`badge ${alert.level === 'crash' ? 'badge-orange' : 'badge-blue'}`}>{alert.level}</span>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>{alert.created_at}</span>
+                          </div>
+                          <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{alert.message}</div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '5px' }}>
+                            {alert.category} · {alert.actor || 'system'}
+                          </div>
+                          {alert.detail && (
+                            <div style={{ color: 'var(--text-dim)', fontSize: '0.76rem', marginTop: '8px', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                              {alert.detail}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      暂无报错或崩溃记录
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            
-            <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', position: 'relative' }}>
-              <Bell size={20} />
-              <span style={{ position: 'absolute', top: 0, right: 0, width: '8px', height: '8px', background: 'var(--danger)', borderRadius: '50%', border: '2px solid var(--bg-dark)' }}></span>
-            </button>
             <button
               onClick={handleLogout}
               title="退出登录"

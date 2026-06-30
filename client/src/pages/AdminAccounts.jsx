@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, Save, Shield } from 'lucide-react';
+import { RefreshCw, Save, Shield, Trash2 } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 
 const AdminAccounts = () => {
@@ -86,6 +86,30 @@ const AdminAccounts = () => {
     }
   };
 
+  const deleteAccount = async (account) => {
+    if (!window.confirm(`确定删除管理员账号「${account.username}」吗？删除后该账号将无法登录。`)) return;
+
+    setSavingId(account.id);
+    setMessage('');
+    setError('');
+
+    try {
+      const response = await fetch(`/api/accounts/${account.id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '删除失败');
+
+      setAccounts((items) => items.filter((item) => item.id !== account.id));
+      setMessage('账号已删除');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   return (
     <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div className="flex-between">
@@ -129,9 +153,9 @@ const AdminAccounts = () => {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((account) => (
+                {accounts.map((account, index) => (
                   <tr key={account.id}>
-                    <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{account.id}</td>
+                    <td title={`数据库 ID: ${account.id}`} style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{index + 1}</td>
                     <td>
                       <input
                         className="input-field"
@@ -154,16 +178,28 @@ const AdminAccounts = () => {
                     </td>
                     <td style={{ color: 'var(--text-muted)' }}>{account.updatedAt || account.createdAt || '-'}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        onClick={() => saveAccount(account)}
-                        disabled={savingId === account.id}
-                        style={{ padding: '8px 14px' }}
-                      >
-                        {account.username === 'admin' ? <Shield size={16} /> : <Save size={16} />}
-                        保存
-                      </button>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={() => saveAccount(account)}
+                          disabled={savingId === account.id}
+                          style={{ padding: '8px 14px' }}
+                        >
+                          {account.username === 'admin' ? <Shield size={16} /> : <Save size={16} />}
+                          保存
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          onClick={() => deleteAccount(account)}
+                          disabled={savingId === account.id || account.username === 'admin'}
+                          style={{ padding: '8px 14px' }}
+                        >
+                          <Trash2 size={16} />
+                          删除
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

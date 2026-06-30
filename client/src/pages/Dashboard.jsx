@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line, CartesianGrid } from 'recharts';
-import { Users, GraduationCap, Activity, Cpu, Play, TerminalSquare } from 'lucide-react';
-import { jsonHeaders } from '../api';
+import { Users, GraduationCap, Activity, Cpu, RefreshCw } from 'lucide-react';
+import { authHeaders } from '../api';
 
 // 模拟雷达图数据
 const mockRadarData = [
@@ -23,19 +23,10 @@ const mockTrendData = [
   { year: '2025', count: 5900 },
 ];
 
-// 模拟系统日志
-const mockActivities = [
-  { time: '10分钟前', msg: 'Admin 导出了全体学生名册', type: 'info' },
-  { time: '1小时前', msg: '系统自动备份完成 (1.2GB)', type: 'success' },
-  { time: '2小时前', msg: '检测到一次失败的异地登录尝试', type: 'warning' },
-  { time: '昨天', msg: '导入了 300 名新生数据', type: 'info' },
-];
-
 const Dashboard = () => {
   const [stats, setStats] = useState({ totalStudents: 0, genderDistribution: [], majorDistribution: [] });
-  const [logs, setLogs] = useState([]);
-  const [isTesting, setIsTesting] = useState(false);
-  const logsEndRef = useRef(null);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [logLoading, setLogLoading] = useState(true);
 
   const fetchStats = () => {
     fetch('/api/stats')
@@ -44,59 +35,66 @@ const Dashboard = () => {
       .catch(err => console.error(err));
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    if (logsEndRef.current) {
-      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [logs]);
-
-  const startConcurrentTest = async () => {
-    if (isTesting) return;
-    setIsTesting(true);
-    setLogs([{ threadName: 'System', action: 'info', message: '>> INITIATING MULTI-THREADED SYNC SEQUENCE...', timestamp: new Date().toLocaleTimeString() }]);
+  const fetchAuditLogs = async () => {
+    setLogLoading(true);
 
     try {
-      const response = await fetch('/api/start-concurrent-test', {
-        method: 'POST',
-        headers: jsonHeaders(),
-        body: JSON.stringify({ useMutex: true }),
-      });
+      const response = await fetch('/api/system-logs?limit=8', { headers: authHeaders() });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '并发测试启动失败');
-
-      const returnedLogs = data.logs || [];
-      returnedLogs.forEach((entry, index) => {
-        setTimeout(() => {
-          setLogs((prev) => [...prev, entry]);
-          if (index === returnedLogs.length - 1) {
-            fetchStats();
-            setIsTesting(false);
-          }
-        }, index * 70);
-      });
-    } catch (err) {
-      console.error(err);
-      setLogs(prev => [...prev, {
-        threadName: 'System',
-        action: 'error',
-        message: err.message,
-        timestamp: new Date().toLocaleTimeString()
+      if (!response.ok) throw new Error(data.error || '系统日志读取失败');
+      setAuditLogs(data.data || []);
+    } catch (error) {
+      setAuditLogs([{
+        id: 'dashboard-log-error',
+        level: 'error',
+        message: error.message,
+        category: 'client',
+        actor: 'browser',
+        created_at: new Date().toLocaleString(),
       }]);
-      setIsTesting(false);
+    } finally {
+      setLogLoading(false);
     }
   };
 
-  const getLogColor = (action, threadName) => {
-    if (action === 'error') return '#ff5c5c';
-    if (action === 'lock') return '#50fa7b'; // 绿
-    if (action === 'unlock') return '#ffb86c'; // 橙
-    if (action === 'wait') return '#bd93f9'; // 紫
-    if (threadName === 'System') return '#8be9fd'; // 青
-    return '#f8f8f2';
+  useEffect(() => {
+    let ignore = false;
+
+    const loadAuditLogs = async () => {
+      try {
+        const response = await fetch('/api/system-logs?limit=8', { headers: authHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '系统日志读取失败');
+        if (!ignore) setAuditLogs(data.data || []);
+      } catch (error) {
+        if (!ignore) {
+          setAuditLogs([{
+            id: 'dashboard-log-error',
+            level: 'error',
+            message: error.message,
+            category: 'client',
+            actor: 'browser',
+            created_at: new Date().toLocaleString(),
+          }]);
+        }
+      } finally {
+        if (!ignore) setLogLoading(false);
+      }
+    };
+
+    fetchStats();
+    loadAuditLogs();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const logColor = (level) => {
+    if (level === 'error' || level === 'crash') return 'var(--danger)';
+    if (level === 'warning') return 'var(--warning)';
+    if (level === 'success') return 'var(--success)';
+    return 'var(--primary)';
   };
 
   return (
@@ -144,65 +142,23 @@ const Dashboard = () => {
           <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.1 }}><Cpu size={120} /></div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning)' }}></div>
-            活跃 Worker 线程
+            近期日志事件
           </div>
           <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>
-            {isTesting ? 3 : 0}
+            {auditLogs.length}
           </div>
-          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: isTesting ? 'var(--warning)' : 'var(--text-dim)' }}>
-            {isTesting ? '并发同步进行中' : '等待任务调度'}
+          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+            近期真实系统日志
           </div>
         </div>
       </div>
 
-      {/* 两列布局：图表区 + 控制台 */}
+      {/* 两列布局：图表区 + 日志区 */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         
         {/* 左侧大区域：图表分析 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* 终端模拟器：多线程并发控制台 */}
-          <div className="terminal-window fade-in-up delay-100">
-            <div className="terminal-header">
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <div className="terminal-dot" style={{ background: '#ff5f56' }}></div>
-                <div className="terminal-dot" style={{ background: '#ffbd2e' }}></div>
-                <div className="terminal-dot" style={{ background: '#27c93f' }}></div>
-              </div>
-              <div style={{ flex: 1, textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', letterSpacing: '1px' }}>
-                <TerminalSquare size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> 
-                root@student-os: /var/log/concurrency.log
-              </div>
-              <button 
-                className="btn-primary" 
-                onClick={startConcurrentTest} 
-                disabled={isTesting}
-                style={{ padding: '4px 12px', fontSize: '0.8rem', borderRadius: '4px' }}
-              >
-                <Play size={14} /> {isTesting ? 'EXECUTING...' : 'RUN SYNC'}
-              </button>
-            </div>
-            
-            <div style={{ padding: '20px', height: '280px', overflowY: 'auto', background: '#0d1117' }}>
-              {logs.length === 0 && (
-                <div style={{ color: '#8b949e', fontStyle: 'italic' }}>
-                  $ 等待触发多线程并发事务... <br/>
-                  $ 提示：点击右上角 RUN SYNC 启动 Node.js 原生 worker_threads 压力测试。
-                </div>
-              )}
-              {logs.map((log, index) => (
-                <div key={index} style={{ marginBottom: '4px', lineHeight: 1.4 }}>
-                  <span style={{ color: '#484f58', marginRight: '12px' }}>[{log.timestamp}]</span>
-                  <span style={{ color: getLogColor(log.action, log.threadName) }}>
-                    {log.threadName !== 'System' && <span style={{ fontWeight: 'bold' }}>[{log.threadName}] </span>}
-                    {log.message}
-                  </span>
-                </div>
-              ))}
-              <div ref={logsEndRef} />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '24px', height: '350px' }}>
+          <div style={{ display: 'flex', gap: '24px', height: '430px' }}>
             <div className="glass-panel fade-in-up delay-200" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>历年招生趋势分析</h3>
               <ResponsiveContainer width="100%" height="100%">
@@ -243,26 +199,36 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>系统操作审计日志</h3>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {mockActivities.map((act, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '12px' }}>
+          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '360px' }}>
+            <div className="flex-between" style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>系统操作审计日志</h3>
+              <button type="button" className="btn-secondary" onClick={fetchAuditLogs} disabled={logLoading} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
+                <RefreshCw size={14} /> 刷新
+              </button>
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto', paddingRight: '4px' }}>
+              {logLoading ? (
+                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>系统日志读取中...</div>
+              ) : auditLogs.length > 0 ? auditLogs.map((log, idx) => (
+                <div key={log.id || idx} style={{ display: 'flex', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={{ 
                       width: '10px', height: '10px', borderRadius: '50%', marginTop: '6px',
-                      background: act.type === 'success' ? 'var(--success)' : act.type === 'warning' ? 'var(--warning)' : 'var(--primary)'
+                      background: logColor(log.level)
                     }}></div>
-                    {idx !== mockActivities.length - 1 && <div style={{ flex: 1, width: '2px', background: 'var(--border-color)', marginTop: '4px' }}></div>}
+                    {idx !== auditLogs.length - 1 && <div style={{ flex: 1, width: '2px', background: 'var(--border-color)', marginTop: '4px' }}></div>}
                   </div>
-                  <div>
-                    <div style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>{act.msg}</div>
-                    <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '4px' }}>{act.time}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 560 }}>{log.message}</div>
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px' }}>
+                      {log.category} · {log.actor || 'system'} · {log.created_at}
+                    </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>暂无系统日志</div>
+              )}
             </div>
-            <button className="btn-secondary" style={{ marginTop: 'auto', width: '100%' }}>查看完整审计日志</button>
           </div>
         </div>
 

@@ -6,7 +6,8 @@ import {
   requireDb,
   validateCourse,
 } from '../../_lib/db.js';
-import { requireAuth } from '../../_lib/auth.js';
+import { requireAuth, requireUser } from '../../_lib/auth.js';
+import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -23,8 +24,8 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
-    const unauthorized = await requireAuth(request, env);
-    if (unauthorized) return unauthorized;
+    const auth = await requireUser(request, env);
+    if (auth.response) return auth.response;
 
     const input = await readJson(request);
     const { course, error } = validateCourse(input);
@@ -42,8 +43,20 @@ export async function onRequestPost({ request, env }) {
       .bind(course.name, course.teacher, course.time, course.location, course.credit, course.capacity, course.description)
       .first();
 
+    await writeSystemLog(db, {
+      level: 'success',
+      category: 'course',
+      message: `新增课程：${created.name}`,
+      actor: auth.account.username,
+    });
+
     return json({ message: '新增成功', course: { ...created, selected_count: 0 } }, { status: 201 });
   } catch (error) {
+    try {
+      const db = requireDb(env);
+      await writeErrorLog(db, error, { message: '新增课程失败', category: 'course' });
+    } catch {}
+
     return json({ error: error.message }, { status: 500 });
   }
 }

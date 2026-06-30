@@ -122,3 +122,7 @@ export async function updateAccountPassword(db, id, password) {
 
   return getAccountById(db, id);
 }
+
+export async function deleteAccount(db, id) {
+  return db.prepare('DELETE FROM accounts WHERE id = ?').bind(id).run();
+}
