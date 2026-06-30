@@ -281,7 +281,7 @@ const CourseManagement = () => {
 
       {studentsModal.open && (
         <div className="drawer-overlay">
-          <div className="drawer-content" style={{ width: 'min(760px, 100vw)' }}>
+          <div className="drawer-content" style={{ width: 'min(1180px, 100vw)', padding: '28px' }}>
             <div className="flex-between" style={{ marginBottom: '24px' }}>
               <div>
                 <h2 style={{ marginBottom: '6px' }}>查看选课学生</h2>
@@ -298,8 +298,8 @@ const CourseManagement = () => {
               {studentsModal.loading ? (
                 <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>选课学生加载中...</div>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="data-table">
+                <div style={{ overflowX: 'auto', maxHeight: 'calc(100vh - 150px)' }}>
+                  <table className="data-table" style={{ minWidth: '980px' }}>
                     <thead>
                       <tr>
                         <th>学号</th>
