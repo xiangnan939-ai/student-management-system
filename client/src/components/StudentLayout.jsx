@@ -84,8 +84,8 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                   padding: '12px',
                   borderRadius: '12px',
                   color: isActive ? 'white' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                  border: isActive ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
+                  background: isActive ? 'rgba(139, 205, 180, 0.13)' : 'transparent',
+                  border: isActive ? '1px solid rgba(139, 205, 180, 0.24)' : '1px solid transparent',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
                   overflow: 'hidden',
@@ -113,7 +113,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
       </aside>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-        <header style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'rgba(9, 9, 11, 0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 40 }}>
+        <header style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'rgba(11, 13, 18, 0.78)', backdropFilter: 'blur(18px) saturate(1.08)', position: 'sticky', top: 0, zIndex: 40 }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>{breadcrumbMap[location.pathname] || '学生端'}</div>
           <button onClick={handleLogout} title="退出登录" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <LogOut size={20} />

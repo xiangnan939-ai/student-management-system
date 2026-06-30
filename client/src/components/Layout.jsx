@@ -80,7 +80,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
             OS
           </div>
           {!collapsed && (
-            <span style={{ marginLeft: '12px', fontSize: '1.2rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
+            <span style={{ marginLeft: '12px', fontSize: '1.2rem', fontWeight: 600, letterSpacing: 0 }}>
               Student OS
             </span>
           )}
@@ -124,13 +124,13 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                   padding: '12px',
                   borderRadius: '12px',
                   color: isActive ? 'white' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                  border: isActive ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
+                  background: isActive ? 'rgba(143, 183, 232, 0.13)' : 'transparent',
+                  border: isActive ? '1px solid rgba(143, 183, 232, 0.24)' : '1px solid transparent',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  boxShadow: isActive ? 'inset 0 0 10px rgba(59, 130, 246, 0.1)' : 'none'
+                  boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none'
                 }}
               >
                 <Icon size={20} style={{ flexShrink: 0, color: isActive ? 'var(--primary)' : 'inherit' }} />
@@ -167,8 +167,8 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           alignItems: 'center', 
           justifyContent: 'space-between',
           borderBottom: '1px solid var(--border-color)',
-          background: 'rgba(9, 9, 11, 0.8)',
-          backdropFilter: 'blur(12px)',
+          background: 'rgba(11, 13, 18, 0.78)',
+          backdropFilter: 'blur(18px) saturate(1.08)',
           position: 'sticky',
           top: 0,
           zIndex: 40
