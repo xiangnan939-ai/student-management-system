@@ -281,7 +281,7 @@ const CourseManagement = () => {
 
       {studentsModal.open && (
         <div className="drawer-overlay">
-          <div className="drawer-content" style={{ width: 'min(1180px, 100vw)', padding: '28px', display: 'flex', flexDirection: 'column' }}>
+          <div className="drawer-content" style={{ width: 'min(1180px, 100vw)', height: '100vh', maxHeight: '100vh', padding: '28px', display: 'flex', flexDirection: 'column' }}>
             <div className="flex-between" style={{ marginBottom: '24px' }}>
               <div>
                 <h2 style={{ marginBottom: '6px' }}>查看选课学生</h2>
@@ -294,11 +294,11 @@ const CourseManagement = () => {
               </button>
             </div>
 
-            <div className="glass-panel" style={{ overflow: 'hidden', background: 'rgba(255,255,255,0.02)', flex: 1, minHeight: 0 }}>
+            <div className="glass-panel" style={{ overflow: 'hidden', background: 'rgba(255,255,255,0.02)', flex: 1, minHeight: 'calc(100vh - 128px)' }}>
               {studentsModal.loading ? (
                 <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>选课学生加载中...</div>
               ) : (
-                <div style={{ overflow: 'auto', height: '100%' }}>
+                <div style={{ overflow: 'auto', height: 'calc(100vh - 128px)' }}>
                   <table className="data-table" style={{ minWidth: '980px' }}>
                     <thead>
                       <tr>
