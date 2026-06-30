@@ -1,0 +1,27 @@
+{
+  "name": "student-os-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  },
+  "pkg": {
+    "assets": [
+      "../client/dist/**/*",
+      "worker.js"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  },
+  "devDependencies": {
+    "caxa": "^3.0.1",
+    "pkg": "^5.8.1"
+  }
+}

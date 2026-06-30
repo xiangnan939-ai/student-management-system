@@ -1,0 +1,17 @@
+node_modules/
+client/node_modules/
+server/node_modules/
+
+client/dist/
+server/public/
+build_temp/
+sqlite_dll/
+
+StudentOS_Final.exe
+server/database.sqlite
+*.log
+
+.env
+.env.*
+.wrangler/
+.DS_Store

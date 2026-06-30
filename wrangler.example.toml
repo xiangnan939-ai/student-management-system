@@ -1,0 +1,8 @@
+name = "student-os"
+compatibility_date = "2026-06-30"
+pages_build_output_dir = "client/dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "student-os-db"
+database_id = "在 Cloudflare 创建 D1 后把 database_id 填到这里"
