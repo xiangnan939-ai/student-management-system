@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Edit, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
+import { Edit, Plus, RefreshCw, Save, Trash2, Users, X } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 
 const emptyCourse = {
@@ -21,6 +21,7 @@ const CourseManagement = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [studentsModal, setStudentsModal] = useState({ open: false, course: null, students: [], loading: false });
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -129,6 +130,28 @@ const CourseManagement = () => {
     }
   };
 
+  const openStudentsModal = async (course) => {
+    setStudentsModal({ open: true, course, students: [], loading: true });
+    setError('');
+
+    try {
+      const response = await fetch(`/api/courses/${course.id}/students`, {
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '选课学生读取失败');
+
+      setStudentsModal({ open: true, course, students: data.data || [], loading: false });
+    } catch (err) {
+      setStudentsModal({ open: true, course, students: [], loading: false });
+      setError(err.message);
+    }
+  };
+
+  const closeStudentsModal = () => {
+    setStudentsModal({ open: false, course: null, students: [], loading: false });
+  };
+
   const remain = (course) => Math.max(Number(course.capacity || 0) - Number(course.selected_count || 0), 0);
 
   return (
@@ -200,6 +223,9 @@ const CourseManagement = () => {
                       <span className={`badge ${remain(course) > 0 ? 'badge-green' : 'badge-orange'}`}>{remain(course)}</span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
+                      <button onClick={() => openStudentsModal(course)} style={{ background: 'transparent', border: 'none', color: 'var(--success)', cursor: 'pointer', padding: '6px' }} title="查看选课学生">
+                        <Users size={18} />
+                      </button>
                       <button onClick={() => openDrawer(course)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '6px' }} title="编辑课程">
                         <Edit size={18} />
                       </button>
@@ -250,6 +276,66 @@ const CourseManagement = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {studentsModal.open && (
+        <div className="drawer-overlay">
+          <div className="drawer-content" style={{ width: 'min(760px, 100vw)' }}>
+            <div className="flex-between" style={{ marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ marginBottom: '6px' }}>查看选课学生</h2>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  {studentsModal.course?.name || '-'}
+                </div>
+              </div>
+              <button type="button" onClick={closeStudentsModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="glass-panel" style={{ overflow: 'hidden', background: 'rgba(255,255,255,0.02)' }}>
+              {studentsModal.loading ? (
+                <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>选课学生加载中...</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>专业</th>
+                        <th>联系电话</th>
+                        <th>选课时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentsModal.students.map((student) => (
+                        <tr key={student.id}>
+                          <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{student.id}</td>
+                          <td style={{ fontWeight: 600 }}>{student.name}</td>
+                          <td>{student.gender}</td>
+                          <td>{student.age}</td>
+                          <td>{student.major}</td>
+                          <td style={{ color: 'var(--text-muted)' }}>{student.phone || '-'}</td>
+                          <td style={{ color: 'var(--text-muted)' }}>{student.selected_at || '-'}</td>
+                        </tr>
+                      ))}
+                      {studentsModal.students.length === 0 && (
+                        <tr>
+                          <td colSpan="7" style={{ textAlign: 'center', padding: '48px', color: 'var(--text-dim)' }}>
+                            暂无学生选择该课程。
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
