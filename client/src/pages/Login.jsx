@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
-  const [loginType, setLoginType] = useState('admin');
+  const [loginType, setLoginType] = useState('student');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
