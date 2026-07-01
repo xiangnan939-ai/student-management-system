@@ -22,6 +22,7 @@ const CourseManagement = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [studentsModal, setStudentsModal] = useState({ open: false, course: null, students: [], loading: false });
+  const [revokingStudentId, setRevokingStudentId] = useState('');
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -150,6 +151,40 @@ const CourseManagement = () => {
 
   const closeStudentsModal = () => {
     setStudentsModal({ open: false, course: null, students: [], loading: false });
+    setRevokingStudentId('');
+  };
+
+  const revokeStudentCourse = async (student) => {
+    if (!studentsModal.course) return;
+    if (!window.confirm(`确定撤销「${student.name}」对课程「${studentsModal.course.name}」的选课吗？`)) return;
+
+    setRevokingStudentId(student.id);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch(`/api/courses/${studentsModal.course.id}/students/${student.id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '撤销失败');
+
+      setStudentsModal((current) => ({
+        ...current,
+        students: current.students.filter((item) => item.id !== student.id),
+      }));
+      setCourses((items) => items.map((course) => (
+        course.id === studentsModal.course.id
+          ? { ...course, selected_count: Math.max(Number(course.selected_count || 0) - 1, 0) }
+          : course
+      )));
+      setMessage('学生选课已撤销');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRevokingStudentId('');
+    }
   };
 
   const remain = (course) => Math.max(Number(course.capacity || 0) - Number(course.selected_count || 0), 0);
@@ -299,7 +334,7 @@ const CourseManagement = () => {
                 <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>选课学生加载中...</div>
               ) : (
                 <div style={{ overflow: 'auto', height: 'calc(100vh - 128px)' }}>
-                  <table className="data-table" style={{ minWidth: '980px' }}>
+                  <table className="data-table" style={{ minWidth: '1080px' }}>
                     <thead>
                       <tr>
                         <th>学号</th>
@@ -309,6 +344,7 @@ const CourseManagement = () => {
                         <th>专业</th>
                         <th>联系电话</th>
                         <th>选课时间</th>
+                        <th style={{ textAlign: 'right' }}>操作</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -321,11 +357,22 @@ const CourseManagement = () => {
                           <td>{student.major}</td>
                           <td style={{ color: 'var(--text-muted)' }}>{student.phone || '-'}</td>
                           <td style={{ color: 'var(--text-muted)' }}>{student.selected_at || '-'}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              className="btn-danger"
+                              onClick={() => revokeStudentCourse(student)}
+                              disabled={revokingStudentId === student.id}
+                              style={{ padding: '8px 14px' }}
+                            >
+                              撤销
+                            </button>
+                          </td>
                         </tr>
                       ))}
                       {studentsModal.students.length === 0 && (
                         <tr>
-                          <td colSpan="7" style={{ textAlign: 'center', padding: '48px', color: 'var(--text-dim)' }}>
+                          <td colSpan="8" style={{ textAlign: 'center', padding: '48px', color: 'var(--text-dim)' }}>
                             暂无学生选择该课程。
                           </td>
                         </tr>
