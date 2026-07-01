@@ -10,33 +10,38 @@ export async function onRequestPost({ request, env, params }) {
     const db = requireDb(env);
     await ensureCourseStore(db);
 
-    const course = await db
-      .prepare('SELECT id, capacity FROM courses WHERE id = ?')
-      .bind(params.id)
-      .first();
-
-    if (!course) return json({ error: '课程不存在' }, { status: 404 });
-
-    const existing = await db
-      .prepare('SELECT id FROM student_courses WHERE student_id = ? AND course_id = ?')
-      .bind(auth.student.id, params.id)
-      .first();
-
-    if (existing) return json({ message: '已选该课程' });
-
-    const selected = await db
-      .prepare('SELECT COUNT(*) AS count FROM student_courses WHERE course_id = ?')
-      .bind(params.id)
-      .first();
-
-    if (Number(selected?.count || 0) >= Number(course.capacity)) {
-      return json({ error: '该课程名额已满' }, { status: 400 });
-    }
-
-    await db
-      .prepare('INSERT INTO student_courses (student_id, course_id) VALUES (?, ?)')
+    const result = await db
+      .prepare(`
+        INSERT OR IGNORE INTO student_courses (student_id, course_id)
+        SELECT ?, c.id
+        FROM courses c
+        WHERE c.id = ?
+          AND (
+            SELECT COUNT(*)
+            FROM student_courses sc
+            WHERE sc.course_id = c.id
+          ) < c.capacity
+      `)
       .bind(auth.student.id, params.id)
       .run();
+
+    if (!result.meta?.changes) {
+      const course = await db
+        .prepare('SELECT id, capacity FROM courses WHERE id = ?')
+        .bind(params.id)
+        .first();
+
+      if (!course) return json({ error: '课程不存在' }, { status: 404 });
+
+      const existing = await db
+        .prepare('SELECT id FROM student_courses WHERE student_id = ? AND course_id = ?')
+        .bind(auth.student.id, params.id)
+        .first();
+
+      if (existing) return json({ message: '已选该课程' });
+
+      return json({ error: '该课程名额已满' }, { status: 400 });
+    }
 
     await writeSystemLog(db, {
       level: 'success',
@@ -53,8 +58,14 @@ export async function onRequestPost({ request, env, params }) {
     } catch {}
 
     const message = String(error.message || '');
-    const status = message.includes('UNIQUE') ? 409 : 500;
-    return json({ error: status === 409 ? '已选该课程' : error.message }, { status });
+    if (message.includes('UNIQUE')) {
+      return json({ error: '已选该课程' }, { status: 409 });
+    }
+    if (message.includes('COURSE_FULL')) {
+      return json({ error: '该课程名额已满' }, { status: 400 });
+    }
+
+    return json({ error: error.message }, { status: 500 });
   }
 }
 
