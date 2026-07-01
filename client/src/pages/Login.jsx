@@ -93,21 +93,6 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px', background: 'rgba(237,241,246,0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '24px' }}>
             <button
               type="button"
-              onClick={() => switchLoginType('admin')}
-              style={{
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                cursor: 'pointer',
-                color: loginType === 'admin' ? '#071019' : 'var(--text-muted)',
-                background: loginType === 'admin' ? 'linear-gradient(135deg, var(--primary), #6f95c4)' : 'transparent',
-                fontWeight: 600,
-              }}
-            >
-              管理员登录
-            </button>
-            <button
-              type="button"
               onClick={() => switchLoginType('student')}
               style={{
                 border: 'none',
@@ -120,6 +105,21 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
               }}
             >
               学生登录
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLoginType('admin')}
+              style={{
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                cursor: 'pointer',
+                color: loginType === 'admin' ? '#071019' : 'var(--text-muted)',
+                background: loginType === 'admin' ? 'linear-gradient(135deg, var(--primary), #6f95c4)' : 'transparent',
+                fontWeight: 600,
+              }}
+            >
+              管理员登录
             </button>
           </div>
           
