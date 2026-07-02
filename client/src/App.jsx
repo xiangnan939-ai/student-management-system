@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
+import LiquidGlassFilters from './components/LiquidGlassFilters';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -40,6 +41,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <LiquidGlassFilters />
       <Routes>
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} setCurrentUser={setCurrentUser} />} />
         <Route path="/" element={

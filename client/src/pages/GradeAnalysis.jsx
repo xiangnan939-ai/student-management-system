@@ -36,7 +36,7 @@ const GradeAnalysis = () => {
               <XAxis dataKey="name" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
               <YAxis stroke="var(--text-muted)" tickLine={false} axisLine={false} />
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-              <Tooltip contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+              <Tooltip contentStyle={{background: 'var(--bg-surface-solid)', color: 'var(--text-main)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
               <Area type="monotone" dataKey="score" name="优秀梯队平均分" stroke="var(--primary)" fillOpacity={1} fill="url(#colorScore)" />
               <Area type="monotone" dataKey="avg" name="年级综合平均分" stroke="var(--accent)" fillOpacity={1} fill="url(#colorAvg)" />
             </AreaChart>

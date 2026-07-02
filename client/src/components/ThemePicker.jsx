@@ -18,6 +18,12 @@ const ThemePicker = ({ activeTheme, saving = false, onSelect }) => {
             disabled={saving}
             aria-pressed={isActive}
           >
+            <span className={`theme-preview theme-preview-${theme.id}`} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+
             <span className="theme-card-topline">
               <span className="theme-swatch-row" aria-hidden="true">
                 {theme.swatches.map((color) => (

@@ -114,7 +114,7 @@ const Dashboard = () => {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }}></div>
             全校在籍学生总数
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white', textShadow: '0 0 20px var(--primary-glow)' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-main)', textShadow: '0 0 20px var(--primary-glow)' }}>
             {stats.totalStudents.toLocaleString()}
           </div>
           <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--success)' }}>↑ 较上学期增长 4.2%</div>
@@ -126,7 +126,7 @@ const Dashboard = () => {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }}></div>
             开设专业总数
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-main)' }}>
             {stats.majorDistribution?.length || 0}
           </div>
           <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>覆盖 6 大学科门类</div>
@@ -138,7 +138,7 @@ const Dashboard = () => {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }}></div>
             集群系统负载
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-main)' }}>
             12<span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>%</span>
           </div>
           <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>节点健康度: Excellent</div>
@@ -150,7 +150,7 @@ const Dashboard = () => {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning)' }}></div>
             近期日志事件
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-main)' }}>
             {auditLogs.length}
           </div>
           <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
@@ -169,7 +169,7 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="year" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-muted)" tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+                <Tooltip contentStyle={{background: 'var(--bg-surface-solid)', color: 'var(--text-main)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
                 <Line type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={3} dot={{r: 4, fill: 'var(--bg-dark)', strokeWidth: 2}} activeDot={{r: 6, fill: 'var(--primary)'}} />
               </LineChart>
             </ResponsiveContainer>
@@ -180,7 +180,7 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.majorDistribution}>
                 <XAxis dataKey="major" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
-                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+                <Tooltip cursor={{fill: 'var(--control-surface-hover)'}} contentStyle={{background: 'var(--bg-surface-solid)', color: 'var(--text-main)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
                 <Bar dataKey="count" fill="var(--accent)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -193,7 +193,7 @@ const Dashboard = () => {
                 <PolarGrid stroke="var(--border-color)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
                 <Radar name="全校平均" dataKey="A" stroke="var(--success)" fill="var(--success)" fillOpacity={0.3} />
-                <Tooltip contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+                <Tooltip contentStyle={{background: 'var(--bg-surface-solid)', color: 'var(--text-main)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
               </RadarChart>
             </ResponsiveContainer>
           </div>

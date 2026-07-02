@@ -329,7 +329,7 @@ const CourseManagement = () => {
               </button>
             </div>
 
-            <div className="glass-panel" style={{ overflow: 'hidden', background: 'rgba(255,255,255,0.02)', flex: 1, minHeight: 'calc(100vh - 128px)' }}>
+            <div className="glass-panel" style={{ overflow: 'hidden', flex: 1, minHeight: 'calc(100vh - 128px)' }}>
               {studentsModal.loading ? (
                 <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>选课学生加载中...</div>
               ) : (
