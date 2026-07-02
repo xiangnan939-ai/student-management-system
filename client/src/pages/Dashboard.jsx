@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line, CartesianGrid } from 'recharts';
 import { Users, GraduationCap, Activity, Cpu, RefreshCw } from 'lucide-react';
 import { authHeaders } from '../api';
+import { displayBeijingTime } from '../time';
 
 // 模拟雷达图数据
 const mockRadarData = [
@@ -225,8 +226,9 @@ const Dashboard = () => {
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 560 }}>{log.message}</div>
-                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px' }}>
-                      {log.category} · {log.actor || 'system'} · {log.created_at}
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px', lineHeight: 1.55 }}>
+                      <div>{log.category} · {log.actor || 'system'}</div>
+                      <div>{displayBeijingTime(log.created_at)}</div>
                     </div>
                   </div>
                 </div>

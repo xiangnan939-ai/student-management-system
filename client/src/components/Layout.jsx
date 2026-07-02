@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { authHeaders } from '../api';
+import { displayBeijingTime } from '../time';
 
 const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
@@ -285,7 +286,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                         <div key={alert.id} style={{ padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'rgba(237,241,246,0.035)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                             <span className={`badge ${alert.level === 'crash' ? 'badge-orange' : 'badge-blue'}`}>{alert.level}</span>
-                            <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>{alert.created_at}</span>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{displayBeijingTime(alert.created_at)}</span>
                           </div>
                           <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{alert.message}</div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '5px' }}>
