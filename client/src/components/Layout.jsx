@@ -5,7 +5,6 @@ import {
   Users, 
   LogOut,
   BookOpen, 
-  BarChart3, 
   Settings,
   Shield,
   Bell,
@@ -32,7 +31,6 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     { path: '/dashboard', name: '系统看板', icon: LayoutDashboard },
     { path: '/students', name: '学籍管理', icon: Users },
     { path: '/courses', name: '课程管理', icon: BookOpen },
-    { path: '/grades', name: '成绩分析', icon: BarChart3 },
     { path: '/settings', name: '系统设置', icon: Settings },
     ...(isAdmin ? [{ path: '/admin-accounts', name: '账号管理', icon: Shield }] : []),
   ];
@@ -42,7 +40,6 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     '/dashboard': '系统看板',
     '/students': '学籍管理 / 学生列表',
     '/courses': '课程管理 / 课程分配体系',
-    '/grades': '成绩分析 / 高阶图表',
     '/settings': '系统设置',
     '/admin-accounts': '账号管理 / 全部管理员'
   };

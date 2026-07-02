@@ -9,7 +9,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import StudentList from './pages/StudentList';
 import CourseManagement from './pages/CourseManagement';
-import GradeAnalysis from './pages/GradeAnalysis';
 import Settings from './pages/Settings';
 import AdminAccounts from './pages/AdminAccounts';
 import StudentCourseSelection from './pages/StudentCourseSelection';
@@ -61,7 +60,6 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<StudentList />} />
           <Route path="courses" element={<CourseManagement />} />
-          <Route path="grades" element={<GradeAnalysis />} />
           <Route
             path="settings"
             element={
