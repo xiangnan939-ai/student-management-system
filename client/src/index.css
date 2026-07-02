@@ -750,16 +750,16 @@ button, input, textarea, select, a {
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .theme-card {
-  min-height: 220px;
+  min-height: 158px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 14px;
-  padding: 18px;
+  gap: 10px;
+  padding: 14px;
   color: var(--text-main);
   text-align: left;
   background:
@@ -773,7 +773,7 @@ button, input, textarea, select, a {
 
 .theme-preview {
   position: relative;
-  height: 72px;
+  height: 50px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
@@ -791,29 +791,29 @@ button, input, textarea, select, a {
 }
 
 .theme-preview span:nth-child(1) {
-  left: 12px;
-  top: 12px;
+  left: 10px;
+  top: 9px;
   width: 22%;
-  height: 48px;
+  height: 32px;
   background: var(--preview-side);
-  border-radius: 8px;
+  border-radius: 7px;
 }
 
 .theme-preview span:nth-child(2) {
   left: 42%;
-  top: 16px;
+  top: 12px;
   width: 42%;
-  height: 12px;
+  height: 9px;
   background: var(--preview-line);
 }
 
 .theme-preview span:nth-child(3) {
   left: 42%;
-  bottom: 16px;
+  bottom: 11px;
   width: 30%;
-  height: 20px;
+  height: 14px;
   background: var(--preview-pill);
-  border-radius: 7px;
+  border-radius: 6px;
 }
 
 .theme-preview-default {
@@ -914,8 +914,8 @@ button, input, textarea, select, a {
 }
 
 .theme-swatch {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 50%;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
@@ -929,9 +929,9 @@ button, input, textarea, select, a {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 9px;
+  padding: 4px 8px;
   color: var(--primary);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   background: var(--primary-glow);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -940,20 +940,20 @@ button, input, textarea, select, a {
 }
 
 .theme-card-title span:first-child {
-  font-size: 1.02rem;
+  font-size: 0.96rem;
   font-weight: 700;
 }
 
 .theme-card-title span:last-child {
   color: var(--text-dim);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 650;
 }
 
 .theme-card-desc {
   color: var(--text-muted);
-  font-size: 0.88rem;
-  line-height: 1.65;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 /* Base utility */
@@ -968,5 +968,25 @@ button, input, textarea, select, a {
 @media (max-width: 720px) {
   .theme-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 720px) {
+  .theme-grid {
+    gap: 10px;
+  }
+
+  .theme-card {
+    min-height: 124px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .theme-preview {
+    height: 40px;
+  }
+
+  .theme-card-desc {
+    display: none;
   }
 }

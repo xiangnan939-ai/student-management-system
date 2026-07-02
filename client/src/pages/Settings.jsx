@@ -13,6 +13,7 @@ const modalBackdropStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  padding: '24px',
   background: 'rgba(0, 0, 0, 0.65)',
   backdropFilter: 'blur(6px)',
 };
@@ -28,7 +29,16 @@ const modalStyle = {
 
 const themeModalStyle = {
   ...modalStyle,
-  width: 'min(760px, calc(100vw - 32px))',
+  width: 'min(720px, calc(100vw - 32px))',
+  maxHeight: 'calc(100dvh - 48px)',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const themeModalBodyStyle = {
+  padding: '18px',
+  overflowY: 'auto',
+  minHeight: 0,
 };
 
 const Settings = ({ currentUser, setCurrentUser }) => {
@@ -251,14 +261,14 @@ const Settings = ({ currentUser, setCurrentUser }) => {
       {activeModal === 'theme' && (
         <div style={modalBackdropStyle}>
           <div style={themeModalStyle}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
               <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ padding: '24px' }}>
+            <div style={themeModalBodyStyle}>
               <ThemePicker activeTheme={activeTheme} saving={saving} onSelect={changeTheme} />
             </div>
           </div>
