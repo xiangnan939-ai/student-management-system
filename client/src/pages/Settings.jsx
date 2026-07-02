@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, Save, UserPlus, X } from 'lucide-react';
+import { KeyRound, Palette, Save, UserPlus, X } from 'lucide-react';
 import { jsonHeaders } from '../api';
 
 const emptyAdminForm = { username: '', password: '' };
@@ -95,7 +95,6 @@ const Settings = () => {
     <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '760px' }}>
       <div>
         <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>系统设置</h1>
-        <p style={{ color: 'var(--text-muted)' }}>账号安全</p>
       </div>
 
       {(message || error) && (
@@ -129,6 +128,15 @@ const Settings = () => {
           style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
         >
           <KeyRound size={18} /> 修改密码
+        </button>
+
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => setActiveModal('theme')}
+          style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
+        >
+          <Palette size={18} /> 更换主题
         </button>
       </div>
 
@@ -198,6 +206,34 @@ const Settings = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {activeModal === 'theme' && (
+        <div style={modalBackdropStyle}>
+          <div style={modalStyle}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
+              <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', display: 'grid', gap: '12px' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  setError('');
+                  setMessage('已应用默认主题');
+                  closeModal();
+                }}
+                style={{ justifyContent: 'center' }}
+              >
+                默认主题（当前主题）
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

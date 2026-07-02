@@ -1,9 +1,30 @@
 import { useState } from 'react';
-import { KeyRound, Save } from 'lucide-react';
+import { KeyRound, Palette, Save, X } from 'lucide-react';
 import { jsonHeaders } from '../api';
+
+const modalBackdropStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 2000,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(0, 0, 0, 0.65)',
+  backdropFilter: 'blur(6px)',
+};
+
+const modalStyle = {
+  width: 'min(460px, calc(100vw - 32px))',
+  background: 'var(--bg-surface-solid)',
+  border: '1px solid var(--border-color)',
+  borderRadius: '12px',
+  boxShadow: '0 24px 80px rgba(0,0,0,0.55)',
+  overflow: 'hidden',
+};
 
 const StudentSettings = ({ setCurrentUser }) => {
   const [password, setPassword] = useState('');
+  const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -42,7 +63,6 @@ const StudentSettings = ({ setCurrentUser }) => {
     <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '680px' }}>
       <div>
         <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>系统设置</h1>
-        <p style={{ color: 'var(--text-muted)' }}>修改学生端登录密码</p>
       </div>
 
       {(message || error) && (
@@ -78,6 +98,45 @@ const StudentSettings = ({ setCurrentUser }) => {
           </button>
         </div>
       </form>
+
+      <div className="glass-panel" style={{ padding: '28px' }}>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => setThemeModalOpen(true)}
+          style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
+        >
+          <Palette size={18} /> 更换主题
+        </button>
+      </div>
+
+      {themeModalOpen && (
+        <div style={modalBackdropStyle}>
+          <div style={modalStyle}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
+              <button type="button" onClick={() => setThemeModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', display: 'grid', gap: '12px' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  setError('');
+                  setMessage('已应用默认主题');
+                  setThemeModalOpen(false);
+                }}
+                style={{ justifyContent: 'center' }}
+              >
+                默认主题（当前主题）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

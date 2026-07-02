@@ -14,7 +14,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
 
   const breadcrumbMap = {
     '/student/course-selection': '选课管理',
-    '/student/settings': '系统设置 / 修改密码',
+    '/student/settings': '系统设置',
   };
 
   const handleLogout = () => {

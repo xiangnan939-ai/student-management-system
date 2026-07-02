@@ -43,7 +43,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     '/students': '学籍管理 / 学生列表',
     '/courses': '课程管理 / 课程分配体系',
     '/grades': '成绩分析 / 高阶图表',
-    '/settings': '系统设置 / 账号安全',
+    '/settings': '系统设置',
     '/admin-accounts': '账号管理 / 全部管理员'
   };
 
