@@ -28,9 +28,10 @@ const modalStyle = {
 const themeModalStyle = {
   ...modalStyle,
   width: 'min(620px, calc(100vw - 24px))',
-  maxHeight: 'calc(100vh - 24px)',
+  maxHeight: 'calc(100vh - 72px)',
   display: 'flex',
   flexDirection: 'column',
+  transform: 'translateY(28px)',
 };
 
 const themeModalBodyStyle = {
