@@ -190,9 +190,11 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
             </button>
           </form>
           
-          <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-            <p>{loginType === 'student' ? '学生默认密码为 123456' : '本系统仅供授权的高校教职工使用'}</p>
-          </div>
+          {loginType === 'admin' && (
+            <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+              <p>本系统仅供授权的高校教职工使用</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
