@@ -1,5 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../_lib/db.js';
 import { studentSessionToken } from '../../_lib/auth.js';
+import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../../_lib/loginLock.js';
 import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env }) {
@@ -11,6 +12,9 @@ export async function onRequestPost({ request, env }) {
     const db = requireDb(env);
     await ensureDatabase(db);
 
+    const lock = await getLoginLock(db, 'student', studentId);
+    if (lock) return json(lock, { status: 429 });
+
     const student = await db
       .prepare(`
         SELECT id, name, gender, age, major, phone, password, password_changed_at
@@ -21,6 +25,8 @@ export async function onRequestPost({ request, env }) {
       .first();
 
     if (!student) {
+      const failure = await recordLoginFailure(db, 'student', studentId);
+
       await writeSystemLog(db, {
         level: 'warning',
         category: 'auth',
@@ -28,8 +34,16 @@ export async function onRequestPost({ request, env }) {
         actor: 'anonymous',
       });
 
-      return json({ success: false, message: '学号或密码错误' }, { status: 401 });
+      if (failure.locked) return json(failure, { status: 429 });
+
+      return json({
+        success: false,
+        message: `学号或密码错误，还可尝试 ${failure.remainingAttempts} 次`,
+        remainingAttempts: failure.remainingAttempts,
+      }, { status: 401 });
     }
+
+    await clearLoginFailures(db, 'student', studentId);
 
     await writeSystemLog(db, {
       level: 'success',

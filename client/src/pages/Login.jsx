@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 
@@ -8,7 +8,25 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   const navigate = useNavigate();
+  const lockSeconds = lockedUntil ? Math.max(Math.ceil((lockedUntil - now) / 1000), 0) : 0;
+
+  useEffect(() => {
+    if (!lockedUntil) return undefined;
+
+    const timer = window.setInterval(() => {
+      const nextNow = Date.now();
+      setNow(nextNow);
+      if (lockedUntil <= nextNow) {
+        setLockedUntil(0);
+        setError('');
+      }
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [lockedUntil]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -23,6 +41,7 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
       });
       const data = await res.json();
       if (data.success) {
+        setLockedUntil(0);
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role || loginType);
         localStorage.setItem('username', data.user.username);
@@ -33,6 +52,10 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         navigate((data.user.role || loginType) === 'student' ? '/student/course-selection' : '/dashboard');
       } else {
         setError(data.message);
+        if (data.locked && data.lockedUntil) {
+          setNow(Date.now());
+          setLockedUntil(Number(data.lockedUntil));
+        }
       }
     } catch (err) {
       setError('连接错误: ' + err.message);
@@ -46,6 +69,13 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
     setUsername('');
     setPassword('');
     setError('');
+    setLockedUntil(0);
+  };
+
+  const handleUsernameChange = (value) => {
+    setUsername(value);
+    setError('');
+    setLockedUntil(0);
   };
 
   return (
@@ -133,7 +163,7 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
                 className="input-field"
                 placeholder={loginType === 'student' ? '请输入学号' : '请输入账号'}
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => handleUsernameChange(e.target.value)}
                 required
               />
             </div>
@@ -155,8 +185,8 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
               </div>
             )}
             
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '12px', padding: '14px' }}>
-              {loading ? '正在验证...' : loginType === 'student' ? '进入学生端' : '安全登录'} <ArrowRight size={18} />
+            <button type="submit" className="btn-primary" disabled={loading || lockSeconds > 0} style={{ marginTop: '12px', padding: '14px' }}>
+              {loading ? '正在验证...' : lockSeconds > 0 ? `请等待 ${lockSeconds} 秒` : loginType === 'student' ? '进入学生端' : '安全登录'} <ArrowRight size={18} />
             </button>
           </form>
           
