@@ -1,4 +1,42 @@
 const LOG_LEVELS = new Set(['info', 'success', 'warning', 'error', 'crash']);
+const BEIJING_TIME_ZONE = 'Asia/Shanghai';
+
+function datePartsInBeijing(date) {
+  const parts = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: BEIJING_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    hourCycle: 'h23',
+  }).formatToParts(date);
+
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
+export function currentBeijingTimestamp() {
+  const parts = datePartsInBeijing(new Date());
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} +08:00`;
+}
+
+export function formatBeijingTimestamp(value) {
+  if (!value) return currentBeijingTimestamp();
+
+  const text = String(value).trim();
+  if (/[+-]\d{2}:?\d{2}$/.test(text)) {
+    return text.replace(/([+-]\d{2})(\d{2})$/, '$1:$2');
+  }
+
+  const normalized = text.includes('T') ? text : `${text.replace(' ', 'T')}Z`;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return text;
+
+  const parts = datePartsInBeijing(date);
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} +08:00`;
+}
 
 export async function ensureSystemLogStore(db) {
   await db.prepare(`
@@ -23,15 +61,16 @@ export async function writeSystemLog(db, input) {
     const message = String(input.message || '').trim();
     const detail = input.detail ? String(input.detail).slice(0, 4000) : '';
     const actor = input.actor ? String(input.actor).trim() : 'system';
+    const createdAt = currentBeijingTimestamp();
 
     if (!message) return;
 
     await db
       .prepare(`
-        INSERT INTO system_logs (level, category, message, detail, actor)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO system_logs (level, category, message, detail, actor, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
       `)
-      .bind(level, category, message, detail, actor)
+      .bind(level, category, message, detail, actor, createdAt)
       .run();
   } catch {
     // Logging should never break the user-facing operation.
@@ -69,7 +108,10 @@ export async function listSystemLogs(db, options = {}) {
       .bind(...levels, limit)
       .all();
 
-    return rows.results || [];
+    return (rows.results || []).map((row) => ({
+      ...row,
+      created_at: formatBeijingTimestamp(row.created_at),
+    }));
   }
 
   const rows = await db
@@ -82,5 +124,8 @@ export async function listSystemLogs(db, options = {}) {
     .bind(limit)
     .all();
 
-  return rows.results || [];
+  return (rows.results || []).map((row) => ({
+    ...row,
+    created_at: formatBeijingTimestamp(row.created_at),
+  }));
 }

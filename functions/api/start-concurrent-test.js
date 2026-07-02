@@ -6,7 +6,7 @@ function log(threadName, action, message) {
     threadName,
     action,
     message,
-    timestamp: new Date().toLocaleTimeString('zh-CN', { hour12: false }),
+    timestamp: new Date().toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }),
   };
 }
 

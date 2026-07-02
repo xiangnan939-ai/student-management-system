@@ -23,6 +23,11 @@ const mockTrendData = [
   { year: '2025', count: 5900 },
 ];
 
+const beijingNow = () => new Date().toLocaleString('zh-CN', {
+  hour12: false,
+  timeZone: 'Asia/Shanghai',
+});
+
 const Dashboard = () => {
   const [stats, setStats] = useState({ totalStudents: 0, genderDistribution: [], majorDistribution: [] });
   const [auditLogs, setAuditLogs] = useState([]);
@@ -50,7 +55,7 @@ const Dashboard = () => {
         message: error.message,
         category: 'client',
         actor: 'browser',
-        created_at: new Date().toLocaleString(),
+        created_at: beijingNow(),
       }]);
     } finally {
       setLogLoading(false);
@@ -74,7 +79,7 @@ const Dashboard = () => {
             message: error.message,
             category: 'client',
             actor: 'browser',
-            created_at: new Date().toLocaleString(),
+            created_at: beijingNow(),
           }]);
         }
       } finally {
