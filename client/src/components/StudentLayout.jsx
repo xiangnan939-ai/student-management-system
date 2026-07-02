@@ -41,7 +41,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           zIndex: 50,
         }}
       >
-        <div style={{ height: '72px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <div style={{ height: '72px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid var(--border-color)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--success), var(--primary))', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
             S
           </div>
@@ -83,9 +83,9 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                   alignItems: 'center',
                   padding: '12px',
                   borderRadius: '12px',
-                  color: isActive ? 'white' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(139, 205, 180, 0.13)' : 'transparent',
-                  border: isActive ? '1px solid rgba(139, 205, 180, 0.24)' : '1px solid transparent',
+                  color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                  background: isActive ? 'var(--success-glow)' : 'transparent',
+                  border: isActive ? '1px solid var(--border-highlight)' : '1px solid transparent',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
                   overflow: 'hidden',
@@ -99,7 +99,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           })}
         </nav>
 
-        <div style={{ padding: '24px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <div style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
           </div>
@@ -113,7 +113,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
       </aside>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-        <header style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'rgba(11, 13, 18, 0.78)', backdropFilter: 'blur(18px) saturate(1.08)', position: 'sticky', top: 0, zIndex: 40 }}>
+        <header style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-surface)', backdropFilter: 'blur(18px) saturate(1.08)', position: 'sticky', top: 0, zIndex: 40 }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>{breadcrumbMap[location.pathname] || '学生端'}</div>
           <button onClick={handleLogout} title="退出登录" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <LogOut size={20} />

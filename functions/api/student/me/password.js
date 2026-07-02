@@ -20,7 +20,7 @@ export async function onRequestPut({ request, env }) {
         UPDATE students
         SET password = ?, password_changed_at = CURRENT_TIMESTAMP
         WHERE id = ?
-        RETURNING id, name, gender, age, major, phone, password, password_changed_at
+        RETURNING id, name, gender, age, major, phone, password, password_changed_at, theme
       `)
       .bind(nextPassword, auth.student.id)
       .first();
@@ -40,6 +40,7 @@ export async function onRequestPut({ request, env }) {
         id: updated.id,
         username: updated.id,
         name: updated.name,
+        theme: updated.theme || 'default',
       },
     });
   } catch (error) {

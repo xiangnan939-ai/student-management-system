@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
+import { persistTheme } from '../themes';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const [loginType, setLoginType] = useState('student');
@@ -47,7 +48,8 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('displayName', data.user.name || data.user.username);
         localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
-        setCurrentUser?.({ ...data.user, role: data.user.role || loginType, isAdmin: data.user.isAdmin || false });
+        const theme = persistTheme(data.user.theme);
+        setCurrentUser?.({ ...data.user, role: data.user.role || loginType, theme, isAdmin: data.user.isAdmin || false });
         setIsAuthenticated(true);
         navigate((data.user.role || loginType) === 'student' ? '/student/course-selection' : '/dashboard');
       } else {
@@ -90,7 +92,7 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         justifyContent: 'center', 
         padding: '60px',
         borderRight: '1px solid var(--border-color)',
-        background: 'linear-gradient(135deg, rgba(143, 183, 232, 0.075), transparent 42%), linear-gradient(315deg, rgba(213, 189, 138, 0.07), transparent 38%)'
+        background: 'linear-gradient(135deg, var(--primary-glow), transparent 42%), linear-gradient(315deg, var(--accent-glow), transparent 38%)'
       }}>
         {/* 背景光晕装饰 */}
         <div style={{ position: 'absolute', top: '-18%', left: '-18%', width: '620px', height: '620px', background: 'var(--primary-glow)', filter: 'blur(120px)', borderRadius: '50%', opacity: 0.55 }}></div>
@@ -98,10 +100,10 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         
         <div className="fade-in-up" style={{ position: 'relative', zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
-            <div style={{ padding: '16px', background: 'rgba(237,241,246,0.055)', borderRadius: '14px', border: '1px solid var(--border-highlight)' }}>
+            <div style={{ padding: '16px', background: 'var(--control-surface)', borderRadius: '14px', border: '1px solid var(--border-highlight)' }}>
               <Cpu size={40} color="var(--primary)" />
             </div>
-            <h1 style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: 0, background: 'linear-gradient(to right, #edf1f6, #a2acba)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: 0, background: 'linear-gradient(to right, var(--text-main), var(--text-muted))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Student OS <br /> Enterprise
             </h1>
           </div>
@@ -120,7 +122,7 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
             <p style={{ color: 'var(--text-dim)' }}>{loginType === 'student' ? '请输入学号和密码' : '请输入您的管理员凭证'}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px', background: 'rgba(237,241,246,0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px', background: 'var(--control-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '24px' }}>
             <button
               type="button"
               onClick={() => switchLoginType('student')}
@@ -129,7 +131,7 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
                 borderRadius: '8px',
                 padding: '10px 12px',
                 cursor: 'pointer',
-                color: loginType === 'student' ? '#071019' : 'var(--text-muted)',
+                color: loginType === 'student' ? 'var(--primary-contrast)' : 'var(--text-muted)',
                 background: loginType === 'student' ? 'linear-gradient(135deg, var(--success), #75b69c)' : 'transparent',
                 fontWeight: 600,
               }}
@@ -144,8 +146,8 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
                 borderRadius: '8px',
                 padding: '10px 12px',
                 cursor: 'pointer',
-                color: loginType === 'admin' ? '#071019' : 'var(--text-muted)',
-                background: loginType === 'admin' ? 'linear-gradient(135deg, var(--primary), #6f95c4)' : 'transparent',
+                color: loginType === 'admin' ? 'var(--primary-contrast)' : 'var(--text-muted)',
+                background: loginType === 'admin' ? 'linear-gradient(135deg, var(--primary), var(--primary-hover))' : 'transparent',
                 fontWeight: 600,
               }}
             >

@@ -7,6 +7,7 @@ import {
   loginUser,
 } from './accounts.js';
 import { requireDb } from './db.js';
+import { normalizeTheme } from './themes.js';
 
 const TOKEN_PREFIX = 'student-os:';
 
@@ -94,6 +95,7 @@ export async function authenticatedStudent(request, env) {
   return db
     .prepare(`
       SELECT id, name, gender, age, major, phone, password, password_changed_at
+        , theme
       FROM students
       WHERE id = ? AND password = ?
     `)
@@ -140,6 +142,7 @@ export async function requireStudent(request, env) {
       id: student.id,
       username: student.id,
       name: student.name,
+      theme: normalizeTheme(student.theme),
     },
   };
 }

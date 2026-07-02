@@ -2,6 +2,7 @@ import { ensureDatabase, json, readJson, requireDb } from '../../_lib/db.js';
 import { studentSessionToken } from '../../_lib/auth.js';
 import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../../_lib/loginLock.js';
 import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { normalizeTheme } from '../../_lib/themes.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -17,7 +18,7 @@ export async function onRequestPost({ request, env }) {
 
     const student = await db
       .prepare(`
-        SELECT id, name, gender, age, major, phone, password, password_changed_at
+        SELECT id, name, gender, age, major, phone, password, password_changed_at, theme
         FROM students
         WHERE id = ? AND password = ?
       `)
@@ -60,6 +61,7 @@ export async function onRequestPost({ request, env }) {
         id: student.id,
         username: student.id,
         name: student.name,
+        theme: normalizeTheme(student.theme),
       },
     });
   } catch (error) {

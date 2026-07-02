@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import AdminAccounts from './pages/AdminAccounts';
 import StudentCourseSelection from './pages/StudentCourseSelection';
 import StudentSettings from './pages/StudentSettings';
+import { applyTheme, getStoredTheme, normalizeTheme } from './themes';
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -29,8 +30,13 @@ function App() {
     role: localStorage.getItem('role') || (localStorage.getItem('token') ? 'admin' : ''),
     username: localStorage.getItem('username') || '',
     name: localStorage.getItem('displayName') || '',
+    theme: getStoredTheme(),
     isAdmin: localStorage.getItem('isAdmin') === 'true',
   }));
+
+  useEffect(() => {
+    applyTheme(currentUser.theme || getStoredTheme());
+  }, [currentUser.theme]);
 
   return (
     <BrowserRouter>
@@ -52,7 +58,15 @@ function App() {
           <Route path="students" element={<StudentList />} />
           <Route path="courses" element={<CourseManagement />} />
           <Route path="grades" element={<GradeAnalysis />} />
-          <Route path="settings" element={<Settings />} />
+          <Route
+            path="settings"
+            element={
+              <Settings
+                currentUser={{ ...currentUser, theme: normalizeTheme(currentUser.theme) }}
+                setCurrentUser={setCurrentUser}
+              />
+            }
+          />
           <Route
             path="admin-accounts"
             element={currentUser?.username === 'admin' ? <AdminAccounts /> : <Navigate to="/dashboard" replace />}
@@ -71,7 +85,10 @@ function App() {
         }>
           <Route index element={<Navigate to="/student/course-selection" replace />} />
           <Route path="course-selection" element={<StudentCourseSelection />} />
-          <Route path="settings" element={<StudentSettings setCurrentUser={setCurrentUser} />} />
+          <Route
+            path="settings"
+            element={<StudentSettings currentUser={currentUser} setCurrentUser={setCurrentUser} />}
+          />
         </Route>
         <Route
           path="*"

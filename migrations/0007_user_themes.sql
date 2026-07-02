@@ -1,0 +1,2 @@
+ALTER TABLE accounts ADD COLUMN theme TEXT NOT NULL DEFAULT 'default';
+ALTER TABLE students ADD COLUMN theme TEXT NOT NULL DEFAULT 'default';

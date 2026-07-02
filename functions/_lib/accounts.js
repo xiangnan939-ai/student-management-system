@@ -1,4 +1,6 @@
-const ACCOUNT_SELECT = 'id, username, password, created_at, updated_at';
+import { normalizeTheme } from './themes.js';
+
+const ACCOUNT_SELECT = 'id, username, password, theme, created_at, updated_at';
 
 export function isRootAdmin(username) {
   return String(username || '').trim() === 'admin';
@@ -9,6 +11,7 @@ export function publicAccount(account) {
     id: account.id,
     username: account.username,
     password: account.password,
+    theme: normalizeTheme(account.theme),
     isAdmin: isRootAdmin(account.username),
     createdAt: account.created_at,
     updatedAt: account.updated_at,
@@ -20,6 +23,7 @@ export function loginUser(account) {
     id: account.id,
     username: account.username,
     name: account.username === 'admin' ? 'admin' : account.username,
+    theme: normalizeTheme(account.theme),
     isAdmin: isRootAdmin(account.username),
   };
 }
@@ -46,10 +50,19 @@ export async function ensureAccountStore(db, env) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
+      theme TEXT NOT NULL DEFAULT 'default',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
+
+  const columns = await db.prepare('PRAGMA table_info(accounts)').all();
+  const columnNames = new Set((columns.results || []).map((column) => column.name));
+  if (!columnNames.has('theme')) {
+    await db.prepare("ALTER TABLE accounts ADD COLUMN theme TEXT NOT NULL DEFAULT 'default'").run();
+  }
+
+  await db.prepare("UPDATE accounts SET theme = 'default' WHERE theme IS NULL OR theme = ''").run();
 
   const adminUsername = env.ADMIN_USER || 'admin';
   const adminPassword = env.ADMIN_PASSWORD || '123456';

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { KeyRound, Palette, Save, UserPlus, X } from 'lucide-react';
 import { jsonHeaders } from '../api';
+import ThemePicker from '../components/ThemePicker';
+import { getStoredTheme, normalizeTheme, persistTheme, themeSavedMessage } from '../themes';
 
 const emptyAdminForm = { username: '', password: '' };
 
@@ -24,10 +26,16 @@ const modalStyle = {
   overflow: 'hidden',
 };
 
-const Settings = () => {
+const themeModalStyle = {
+  ...modalStyle,
+  width: 'min(760px, calc(100vw - 32px))',
+};
+
+const Settings = ({ currentUser, setCurrentUser }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [adminForm, setAdminForm] = useState(emptyAdminForm);
   const [newPassword, setNewPassword] = useState('');
+  const [activeTheme, setActiveTheme] = useState(() => normalizeTheme(currentUser?.theme || getStoredTheme()));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -82,7 +90,38 @@ const Settings = () => {
       localStorage.setItem('username', data.user.username);
       localStorage.setItem('displayName', data.user.name || data.user.username);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+      if (data.user.theme) {
+        const theme = persistTheme(data.user.theme);
+        setActiveTheme(theme);
+        setCurrentUser?.((user) => ({ ...user, ...data.user, theme }));
+      }
       setMessage('密码已修改');
+      closeModal();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changeTheme = async (theme) => {
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/me/theme', {
+        method: 'PUT',
+        headers: jsonHeaders(),
+        body: JSON.stringify({ theme }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '保存主题失败');
+
+      const nextTheme = persistTheme(data.user?.theme || theme);
+      setActiveTheme(nextTheme);
+      setCurrentUser?.((user) => ({ ...user, ...(data.user || {}), role: 'admin', theme: nextTheme }));
+      setMessage(themeSavedMessage(nextTheme));
       closeModal();
     } catch (err) {
       setError(err.message);
@@ -211,7 +250,7 @@ const Settings = () => {
 
       {activeModal === 'theme' && (
         <div style={modalBackdropStyle}>
-          <div style={modalStyle}>
+          <div style={themeModalStyle}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
               <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
@@ -219,19 +258,8 @@ const Settings = () => {
               </button>
             </div>
 
-            <div style={{ padding: '24px', display: 'grid', gap: '12px' }}>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => {
-                  setError('');
-                  setMessage('已应用默认主题');
-                  closeModal();
-                }}
-                style={{ justifyContent: 'center' }}
-              >
-                默认主题（当前主题）
-              </button>
+            <div style={{ padding: '24px' }}>
+              <ThemePicker activeTheme={activeTheme} saving={saving} onSelect={changeTheme} />
             </div>
           </div>
         </div>

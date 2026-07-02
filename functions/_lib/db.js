@@ -1,3 +1,5 @@
+import { normalizeTheme } from './themes.js';
+
 const seedStudents = [
   ['2023001', '张三', '男', 20, '计算机科学与技术', '13800138001'],
   ['2023002', '李四', '女', 19, '软件工程', '13800138002'],
@@ -37,7 +39,8 @@ export async function ensureDatabase(db) {
       major TEXT NOT NULL,
       phone TEXT,
       password TEXT NOT NULL DEFAULT '123456',
-      password_changed_at TEXT
+      password_changed_at TEXT,
+      theme TEXT NOT NULL DEFAULT 'default'
     )
   `).run();
 
@@ -52,6 +55,12 @@ export async function ensureDatabase(db) {
     await db.prepare('ALTER TABLE students ADD COLUMN password_changed_at TEXT').run();
   }
 
+  if (!columnNames.has('theme')) {
+    await db.prepare("ALTER TABLE students ADD COLUMN theme TEXT NOT NULL DEFAULT 'default'").run();
+  }
+
+  await db.prepare("UPDATE students SET theme = 'default' WHERE theme IS NULL OR theme = ''").run();
+
   const row = await db.prepare('SELECT COUNT(*) AS count FROM students').first();
   if (row?.count > 0) return;
 
@@ -61,6 +70,10 @@ export async function ensureDatabase(db) {
   `);
 
   await db.batch(seedStudents.map((student) => statement.bind(...student)));
+}
+
+export function publicStudentTheme(student) {
+  return normalizeTheme(student?.theme);
 }
 
 export function requireDb(env) {

@@ -134,7 +134,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           display: 'flex', 
           alignItems: 'center', 
           padding: collapsed ? '0 24px' : '0 24px', 
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          borderBottom: '1px solid var(--border-color)',
           overflow: 'hidden',
           whiteSpace: 'nowrap'
         }}>
@@ -185,9 +185,9 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                   alignItems: 'center',
                   padding: '12px',
                   borderRadius: '12px',
-                  color: isActive ? 'white' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(143, 183, 232, 0.13)' : 'transparent',
-                  border: isActive ? '1px solid rgba(143, 183, 232, 0.24)' : '1px solid transparent',
+                  color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                  background: isActive ? 'var(--primary-glow)' : 'transparent',
+                  border: isActive ? '1px solid var(--border-highlight)' : '1px solid transparent',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
                   overflow: 'hidden',
@@ -203,7 +203,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         </nav>
 
         {/* 底部用户信息 */}
-        <div style={{ padding: '24px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <div style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
           </div>
@@ -229,7 +229,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           alignItems: 'center', 
           justifyContent: 'space-between',
           borderBottom: '1px solid var(--border-color)',
-          background: 'rgba(11, 13, 18, 0.78)',
+          background: 'var(--bg-surface)',
           backdropFilter: 'blur(18px) saturate(1.08)',
           position: 'sticky',
           top: 0,
