@@ -159,41 +159,34 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 两列布局：图表区 + 日志区 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        
-        {/* 左侧大区域：图表分析 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'flex', gap: '24px', height: '430px' }}>
-            <div className="glass-panel fade-in-up delay-200" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>历年招生趋势分析</h3>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="year" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-muted)" tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
-                  <Line type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={3} dot={{r: 4, fill: 'var(--bg-dark)', strokeWidth: 2}} activeDot={{r: 6, fill: 'var(--primary)'}} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="glass-panel fade-in-up delay-200" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>各专业学生分布</h3>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.majorDistribution}>
-                  <XAxis dataKey="major" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
-                  <Bar dataKey="count" fill="var(--accent)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+      {/* 图表与日志区域 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '24px' }}>
+          <div className="glass-panel fade-in-up delay-200" style={{ height: '430px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>历年招生趋势分析</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mockTrendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis dataKey="year" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+                <Line type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={3} dot={{r: 4, fill: 'var(--bg-dark)', strokeWidth: 2}} activeDot={{r: 6, fill: 'var(--primary)'}} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </div>
 
-        {/* 右侧区域：辅助图表与信息轴 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', height: '320px', display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-panel fade-in-up delay-200" style={{ height: '430px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 600 }}>各专业学生分布</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.majorDistribution}>
+                <XAxis dataKey="major" stroke="var(--text-muted)" tickLine={false} axisLine={false} />
+                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{background: 'rgba(24, 24, 27, 0.9)', border: '1px solid var(--border-highlight)', borderRadius: '8px'}} />
+                <Bar dataKey="count" fill="var(--accent)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="glass-panel fade-in-up delay-300" style={{ height: '430px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: 600 }}>全校生源综合能力画像</h3>
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={mockRadarData}>
@@ -204,10 +197,11 @@ const Dashboard = () => {
               </RadarChart>
             </ResponsiveContainer>
           </div>
+        </div>
 
-          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '360px' }}>
+          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '360px' }}>
             <div className="flex-between" style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>系统操作审计日志</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>日志</h3>
               <button type="button" className="btn-secondary" onClick={fetchAuditLogs} disabled={logLoading} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
                 <RefreshCw size={14} /> 刷新
               </button>
@@ -237,8 +231,6 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-        </div>
-
       </div>
     </div>
   );
