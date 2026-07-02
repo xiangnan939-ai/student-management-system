@@ -27,15 +27,16 @@ const modalStyle = {
 
 const themeModalStyle = {
   ...modalStyle,
-  width: 'min(720px, calc(100vw - 32px))',
-  maxHeight: 'calc(100dvh - 48px)',
+  width: 'min(620px, calc(100vw - 24px))',
+  maxHeight: 'calc(100vh - 24px)',
   display: 'flex',
   flexDirection: 'column',
 };
 
 const themeModalBodyStyle = {
-  padding: '18px',
+  padding: '12px',
   overflowY: 'auto',
+  overscrollBehavior: 'contain',
   minHeight: 0,
 };
 
@@ -163,7 +164,7 @@ const StudentSettings = ({ currentUser, setCurrentUser }) => {
       {themeModalOpen && (
         <div style={modalBackdropStyle}>
           <div style={themeModalStyle}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
               <button type="button" onClick={() => setThemeModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
                 <X size={20} />

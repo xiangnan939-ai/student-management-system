@@ -17,6 +17,7 @@ const ThemePicker = ({ activeTheme, saving = false, onSelect }) => {
             onClick={() => onSelect?.(theme.id)}
             disabled={saving}
             aria-pressed={isActive}
+            title={theme.description}
           >
             <span className={`theme-preview theme-preview-${theme.id}`} aria-hidden="true">
               <span />
@@ -24,24 +25,20 @@ const ThemePicker = ({ activeTheme, saving = false, onSelect }) => {
               <span />
             </span>
 
-            <span className="theme-card-topline">
-              <span className="theme-swatch-row" aria-hidden="true">
-                {theme.swatches.map((color) => (
-                  <span key={color} className="theme-swatch" style={{ background: color }} />
-                ))}
+            <span className="theme-card-content">
+              <span className="theme-card-title">
+                <span>{theme.name}</span>
+                <span>{theme.tag}</span>
               </span>
+            </span>
+
+            <span className="theme-card-state">
               {isActive && (
                 <span className="theme-active-mark">
                   <Check size={15} /> 已选
                 </span>
               )}
             </span>
-
-            <span className="theme-card-title">
-              <span>{theme.name}</span>
-              <span>{theme.tag}</span>
-            </span>
-            <span className="theme-card-desc">{theme.description}</span>
           </button>
         );
       })}
