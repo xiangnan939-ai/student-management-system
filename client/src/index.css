@@ -119,11 +119,8 @@
   --terminal-border: rgba(232, 249, 255, 0.16);
   --primary-contrast: #06131d;
   --body-bg:
-    radial-gradient(circle at var(--liquid-screen-x) var(--liquid-screen-y), rgba(216, 246, 255, 0.16) 0%, transparent 26%),
-    linear-gradient(118deg, rgba(216, 246, 255, 0.16) 0%, transparent 34%),
-    linear-gradient(292deg, rgba(184, 169, 255, 0.14) 0%, transparent 32%),
-    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 18px),
-    linear-gradient(155deg, #071321 0%, #102a43 48%, #071321 100%);
+    radial-gradient(circle at 52% 50%, rgba(232, 249, 255, 0.08) 0%, transparent 38%),
+    linear-gradient(155deg, #061225 0%, #102c48 46%, #16143a 72%, #071321 100%);
   --selection-text: #06131d;
   --selection-bg: rgba(184, 231, 255, 0.9);
 }
@@ -332,20 +329,33 @@ body::after {
 :root[data-theme='liquid-glass'] body::before {
   z-index: 0;
   opacity: 1;
+  inset: -18%;
   background:
-    radial-gradient(circle at var(--liquid-screen-x) var(--liquid-screen-y), rgba(216, 246, 255, 0.22), transparent 18%),
-    radial-gradient(circle at calc(100% - var(--liquid-screen-x)) calc(100% - var(--liquid-screen-y)), rgba(184, 169, 255, 0.16), transparent 24%);
-  filter: blur(34px);
+    radial-gradient(circle at 17% 34%, rgba(96, 170, 255, 0.84), transparent 28%),
+    radial-gradient(circle at 65% 22%, rgba(55, 82, 182, 0.68), transparent 34%),
+    radial-gradient(circle at 86% 70%, rgba(236, 226, 255, 0.78), transparent 30%),
+    radial-gradient(circle at 88% 28%, rgba(104, 184, 255, 0.62), transparent 30%),
+    radial-gradient(circle at 56% 82%, rgba(91, 231, 199, 0.54), transparent 28%),
+    radial-gradient(circle at 76% 46%, rgba(255, 202, 124, 0.36), transparent 24%),
+    radial-gradient(circle at 40% 18%, rgba(255, 122, 164, 0.3), transparent 26%),
+    radial-gradient(circle at 31% 82%, rgba(137, 78, 255, 0.72), transparent 31%),
+    linear-gradient(120deg, #04122e 0%, #0a2f74 36%, #6f4ee8 72%, #142a48 100%);
+  background-size: 130% 130%, 145% 145%, 150% 150%, 140% 140%, 142% 142%, 132% 132%, 136% 136%, 135% 135%, 100% 100%;
+  filter: saturate(1.36) blur(2px);
   mix-blend-mode: screen;
+  animation: loginColorFlow 8s ease-in-out infinite alternate;
+  will-change: transform, background-position, filter;
 }
 
 :root[data-theme='liquid-glass'] body::after {
   z-index: 0;
-  opacity: 0.42;
+  opacity: 0.52;
   background:
-    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.045) 50%, transparent 100%),
+    radial-gradient(circle at var(--liquid-screen-x) var(--liquid-screen-y), rgba(216, 246, 255, 0.2), transparent 18%),
+    radial-gradient(circle at calc(100% - var(--liquid-screen-x)) calc(100% - var(--liquid-screen-y)), rgba(255, 202, 124, 0.12), transparent 22%),
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%),
     repeating-linear-gradient(115deg, transparent 0 18px, rgba(255, 255, 255, 0.035) 18px 19px);
-  background-size: 220px 100%, 42px 42px;
+  background-size: auto, auto, 220px 100%, 42px 42px;
   mask-image: radial-gradient(circle at var(--liquid-screen-x) var(--liquid-screen-y), black 0%, transparent 42%);
   -webkit-mask-image: radial-gradient(circle at var(--liquid-screen-x) var(--liquid-screen-y), black 0%, transparent 42%);
 }
@@ -989,11 +999,17 @@ button, input, textarea, select, a {
 
 .theme-preview-liquid-glass {
   --preview-bg: #071321;
-  --preview-a: rgba(216, 246, 255, 0.28);
-  --preview-b: rgba(184, 169, 255, 0.24);
+  --preview-a: rgba(91, 231, 199, 0.24);
+  --preview-b: rgba(255, 202, 124, 0.2);
   --preview-side: rgba(232, 249, 255, 0.18);
   --preview-line: #d8f6ff;
-  --preview-pill: #b8a9ff;
+  --preview-pill: #ffd48a;
+  background:
+    radial-gradient(circle at 18% 34%, rgba(96, 170, 255, 0.72), transparent 36%),
+    radial-gradient(circle at 82% 24%, rgba(255, 122, 164, 0.44), transparent 34%),
+    radial-gradient(circle at 70% 78%, rgba(91, 231, 199, 0.5), transparent 34%),
+    radial-gradient(circle at 42% 84%, rgba(137, 78, 255, 0.54), transparent 34%),
+    linear-gradient(135deg, #071321, #123c64 48%, #271c5b);
   backdrop-filter: blur(14px) saturate(1.35);
   -webkit-backdrop-filter: blur(14px) saturate(1.35);
 }
