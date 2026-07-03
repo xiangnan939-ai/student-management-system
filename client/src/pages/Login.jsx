@@ -160,12 +160,6 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
               {loading ? '正在验证...' : lockSeconds > 0 ? `请等待 ${lockSeconds} 秒` : loginType === 'student' ? '进入学生端' : '安全登录'} <ArrowRight size={18} />
             </button>
           </form>
-          
-          {loginType === 'admin' && (
-            <div className="login-admin-note">
-              <p>本系统仅供授权的高校教职工使用</p>
-            </div>
-          )}
         </div>
       </section>
     </div>
