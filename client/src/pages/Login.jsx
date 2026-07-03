@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
-import { persistTheme } from '../themes';
+import { normalizeTheme } from '../themes';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const [loginType, setLoginType] = useState('student');
@@ -48,7 +48,8 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('displayName', data.user.name || data.user.username);
         localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
-        const theme = persistTheme(data.user.theme);
+        const theme = normalizeTheme(data.user.theme);
+        localStorage.setItem('theme', theme);
         setCurrentUser?.({ ...data.user, role: data.user.role || loginType, theme, isAdmin: data.user.isAdmin || false });
         setIsAuthenticated(true);
         navigate((data.user.role || loginType) === 'student' ? '/student/course-selection' : '/dashboard');
