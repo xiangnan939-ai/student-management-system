@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 import { normalizeTheme } from '../themes';
+import loginBackdrop from '../assets/login-ambient-bg.jpg';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   const [loginType, setLoginType] = useState('student');
@@ -82,88 +83,55 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
   };
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: 'var(--bg-dark)' }}>
-      {/* 左侧：品牌展示区 (抽象动态效果) */}
-      <div style={{ 
-        flex: 1, 
-        position: 'relative', 
-        overflow: 'hidden', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        padding: '60px',
-        borderRight: '1px solid var(--border-color)',
-        background: 'linear-gradient(135deg, var(--primary-glow), transparent 42%), linear-gradient(315deg, var(--accent-glow), transparent 38%)'
-      }}>
-        {/* 背景光晕装饰 */}
-        <div style={{ position: 'absolute', top: '-18%', left: '-18%', width: '620px', height: '620px', background: 'var(--primary-glow)', filter: 'blur(120px)', borderRadius: '50%', opacity: 0.55 }}></div>
-        <div style={{ position: 'absolute', bottom: '-20%', right: '-18%', width: '720px', height: '720px', background: 'var(--accent-glow)', filter: 'blur(140px)', borderRadius: '50%', opacity: 0.5 }}></div>
-        
-        <div className="fade-in-up" style={{ position: 'relative', zIndex: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
-            <div style={{ padding: '16px', background: 'var(--control-surface)', borderRadius: '14px', border: '1px solid var(--border-highlight)' }}>
-              <Cpu size={40} color="var(--primary)" />
-            </div>
-            <h1 style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: 0, background: 'linear-gradient(to right, var(--text-main), var(--text-muted))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Student OS <br /> Enterprise
-            </h1>
-          </div>
-          <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', lineHeight: 1.8, maxWidth: '500px' }}>
-            “新一代高校教务管理中枢。”<br/>
-            依托底层真实多线程并发控制架构，提供千万级数据吞吐能力的高保真管理面板。
-          </p>
+    <div className="login-shell" style={{ '--login-bg-image': `url(${loginBackdrop})` }}>
+      <div className="login-flow-field" aria-hidden="true"></div>
+      <div className="login-backdrop-image login-backdrop-image-luminosity" aria-hidden="true"></div>
+      <div className="login-backdrop-image login-backdrop-image-detail" aria-hidden="true"></div>
+      <div className="login-vignette" aria-hidden="true"></div>
+
+      <section className="login-visual-space" aria-label="系统视觉背景">
+        <div className="login-brand-mark fade-in-up">
+          <span className="login-brand-icon"><Cpu size={26} /></span>
+          <span>
+            <strong>Student OS</strong>
+            <small>最好的学生管理系统</small>
+          </span>
         </div>
-      </div>
+      </section>
 
-      {/* 右侧：极简高级表单区 */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-        <div className="glass-panel fade-in-up delay-100" style={{ padding: '48px', width: '100%', maxWidth: '440px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 600, marginBottom: '8px' }}>欢迎回来</h2>
-            <p style={{ color: 'var(--text-dim)' }}>{loginType === 'student' ? '请输入学号和密码' : '请输入您的管理员凭证'}</p>
+      <section className="login-form-stage">
+        <div className="login-auth-card fade-in-up delay-100">
+          <div className="login-card-heading">
+            <span className="login-card-kicker">Secure Access</span>
+            <h2>欢迎回来</h2>
+            <p>{loginType === 'student' ? '请输入学号和密码' : '请输入您的管理员凭证'}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '4px', background: 'var(--control-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '24px' }}>
+          <div className="login-type-switch">
             <button
               type="button"
               onClick={() => switchLoginType('student')}
-              style={{
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                cursor: 'pointer',
-                color: loginType === 'student' ? 'var(--primary-contrast)' : 'var(--text-muted)',
-                background: loginType === 'student' ? 'linear-gradient(135deg, var(--success), #75b69c)' : 'transparent',
-                fontWeight: 600,
-              }}
+              className={loginType === 'student' ? 'active student' : ''}
             >
               学生登录
             </button>
             <button
               type="button"
               onClick={() => switchLoginType('admin')}
-              style={{
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                cursor: 'pointer',
-                color: loginType === 'admin' ? 'var(--primary-contrast)' : 'var(--text-muted)',
-                background: loginType === 'admin' ? 'linear-gradient(135deg, var(--primary), var(--primary-hover))' : 'transparent',
-                fontWeight: 600,
-              }}
+              className={loginType === 'admin' ? 'active admin' : ''}
             >
               管理员登录
             </button>
           </div>
           
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form onSubmit={handleLogin} className="login-form">
             <div>
-              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 500 }}>
+              <label className="login-field-label">
                 {loginType === 'student' ? '学号' : '用户名'}
               </label>
               <input
                 type="text"
-                className="input-field"
+                className="login-input"
                 placeholder={loginType === 'student' ? '请输入学号' : '请输入账号'}
                 value={username}
                 onChange={(e) => handleUsernameChange(e.target.value)}
@@ -171,10 +139,10 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 500 }}>密码</label>
+              <label className="login-field-label">密码</label>
               <input
                 type="password"
-                className="input-field"
+                className="login-input"
                 placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -183,23 +151,23 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
             </div>
             
             {error && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)', fontSize: '0.9rem', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div className="login-error">
                 <ShieldCheck size={18} /> {error}
               </div>
             )}
             
-            <button type="submit" className="btn-primary" disabled={loading || lockSeconds > 0} style={{ marginTop: '12px', padding: '14px' }}>
+            <button type="submit" className="login-submit" disabled={loading || lockSeconds > 0}>
               {loading ? '正在验证...' : lockSeconds > 0 ? `请等待 ${lockSeconds} 秒` : loginType === 'student' ? '进入学生端' : '安全登录'} <ArrowRight size={18} />
             </button>
           </form>
           
           {loginType === 'admin' && (
-            <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+            <div className="login-admin-note">
               <p>本系统仅供授权的高校教职工使用</p>
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
