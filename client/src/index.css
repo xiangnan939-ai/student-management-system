@@ -69,10 +69,10 @@
 
 :root[data-theme='liquid-glass'] {
   color-scheme: dark;
-  --bg-dark: #071321;
-  --bg-surface: rgba(18, 40, 62, 0.38);
-  --bg-surface-solid: rgba(12, 29, 48, 0.88);
-  --bg-elevated: rgba(52, 84, 112, 0.42);
+  --bg-dark: rgba(6, 18, 37, 0.28);
+  --bg-surface: rgba(8, 26, 46, 0.44);
+  --bg-surface-solid: rgba(9, 25, 44, 0.62);
+  --bg-elevated: rgba(52, 84, 112, 0.34);
 
   --primary: #d8f6ff;
   --primary-glow: rgba(115, 217, 255, 0.28);
@@ -119,8 +119,8 @@
   --terminal-border: rgba(232, 249, 255, 0.16);
   --primary-contrast: #06131d;
   --body-bg:
-    radial-gradient(circle at 52% 50%, rgba(232, 249, 255, 0.08) 0%, transparent 38%),
-    linear-gradient(155deg, #061225 0%, #102c48 46%, #16143a 72%, #071321 100%);
+    radial-gradient(circle at 52% 50%, rgba(232, 249, 255, 0.1) 0%, transparent 38%),
+    linear-gradient(155deg, #061225 0%, #102c48 42%, #21164b 74%, #071321 100%);
   --selection-text: #06131d;
   --selection-bg: rgba(184, 231, 255, 0.9);
 }
@@ -328,21 +328,21 @@ body::after {
 
 :root[data-theme='liquid-glass'] body::before {
   z-index: 0;
-  opacity: 1;
+  opacity: 0.98;
   inset: -18%;
   background:
-    radial-gradient(circle at 17% 34%, rgba(96, 170, 255, 0.84), transparent 28%),
-    radial-gradient(circle at 65% 22%, rgba(55, 82, 182, 0.68), transparent 34%),
-    radial-gradient(circle at 86% 70%, rgba(236, 226, 255, 0.78), transparent 30%),
-    radial-gradient(circle at 88% 28%, rgba(104, 184, 255, 0.62), transparent 30%),
-    radial-gradient(circle at 56% 82%, rgba(91, 231, 199, 0.54), transparent 28%),
-    radial-gradient(circle at 76% 46%, rgba(255, 202, 124, 0.36), transparent 24%),
-    radial-gradient(circle at 40% 18%, rgba(255, 122, 164, 0.3), transparent 26%),
-    radial-gradient(circle at 31% 82%, rgba(137, 78, 255, 0.72), transparent 31%),
+    radial-gradient(circle at 17% 34%, rgba(96, 170, 255, 0.95), transparent 28%),
+    radial-gradient(circle at 65% 22%, rgba(55, 82, 182, 0.78), transparent 34%),
+    radial-gradient(circle at 86% 70%, rgba(236, 226, 255, 0.88), transparent 30%),
+    radial-gradient(circle at 88% 28%, rgba(104, 184, 255, 0.72), transparent 30%),
+    radial-gradient(circle at 56% 82%, rgba(91, 231, 199, 0.66), transparent 28%),
+    radial-gradient(circle at 76% 46%, rgba(255, 202, 124, 0.48), transparent 24%),
+    radial-gradient(circle at 40% 18%, rgba(255, 122, 164, 0.42), transparent 26%),
+    radial-gradient(circle at 31% 82%, rgba(137, 78, 255, 0.82), transparent 31%),
     linear-gradient(120deg, #04122e 0%, #0a2f74 36%, #6f4ee8 72%, #142a48 100%);
   background-size: 130% 130%, 145% 145%, 150% 150%, 140% 140%, 142% 142%, 132% 132%, 136% 136%, 135% 135%, 100% 100%;
-  filter: saturate(1.36) blur(2px);
-  mix-blend-mode: screen;
+  filter: saturate(1.5) blur(1px);
+  mix-blend-mode: normal;
   animation: loginColorFlow 8s ease-in-out infinite alternate;
   will-change: transform, background-position, filter;
 }
