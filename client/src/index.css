@@ -347,7 +347,7 @@ body::after {
   background-size: 132% 132%, 138% 138%, 132% 132%, 142% 142%, 142% 142%, 140% 140%, 130% 130%, 145% 145%, 135% 135%, 150% 150%, 136% 136%, 128% 128%, 100% 100%;
   filter: saturate(1.42) blur(1px);
   mix-blend-mode: normal;
-  animation: loginColorFlow 8s ease-in-out infinite alternate;
+  animation: loginColorFlow 5.2s ease-in-out infinite alternate;
   will-change: transform, background-position, filter;
 }
 
@@ -1183,7 +1183,7 @@ button, input, textarea, select, a {
     radial-gradient(circle at 70% 86%, rgba(255, 245, 205, 0.34), transparent 28%),
     linear-gradient(120deg, #04122e 0%, #0a2f74 32%, #6f4ee8 64%, #142a48 100%);
   background-size: 132% 132%, 138% 138%, 132% 132%, 142% 142%, 142% 142%, 140% 140%, 130% 130%, 145% 145%, 135% 135%, 150% 150%, 136% 136%, 128% 128%, 100% 100%;
-  animation: loginColorFlow 7s ease-in-out infinite alternate;
+  animation: loginColorFlow 4.8s ease-in-out infinite alternate;
   filter: saturate(1.44);
 }
 
