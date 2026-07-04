@@ -134,7 +134,7 @@ const StudentSettings = ({ currentUser, setCurrentUser }) => {
       <form className="glass-panel" onSubmit={changePassword} style={{ padding: '28px', display: 'grid', gap: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)' }}>
           <KeyRound size={20} />
-          <span>请输入新密码</span>
+          <span>更改密码</span>
         </div>
         <input
           className="input-field"
