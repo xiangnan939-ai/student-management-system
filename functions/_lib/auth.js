@@ -62,7 +62,7 @@ function readTokenPayload(token) {
 }
 
 async function readLegacyAdminToken(token, env, db) {
-  const legacy = `${TOKEN_PREFIX}${env.ADMIN_PASSWORD || '123456'}`;
+  const legacy = `${TOKEN_PREFIX}${env.ADMIN_PASSWORD || 'admin'}`;
   if (token !== legacy) return null;
   return getAccountByUsername(db, env.ADMIN_USER || 'admin');
 }

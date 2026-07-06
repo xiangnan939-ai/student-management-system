@@ -109,7 +109,7 @@ app.post('/api/start-concurrent-test', (req, res) => {
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === '123456') {
+    if (username === 'admin' && password === 'admin') {
         res.json({ success: true, token: 'mock-jwt-token', user: { name: '管理员' } });
     } else {
         res.status(401).json({ success: false, message: '用户名或密码错误' });

@@ -65,7 +65,7 @@ export async function ensureAccountStore(db, env) {
   await db.prepare("UPDATE accounts SET theme = 'default' WHERE theme IS NULL OR theme = ''").run();
 
   const adminUsername = env.ADMIN_USER || 'admin';
-  const adminPassword = env.ADMIN_PASSWORD || '123456';
+  const adminPassword = env.ADMIN_PASSWORD || 'admin';
   const admin = await getAccountByUsername(db, adminUsername);
 
   if (!admin) {
@@ -73,6 +73,8 @@ export async function ensureAccountStore(db, env) {
       .prepare('INSERT INTO accounts (username, password) VALUES (?, ?)')
       .bind(adminUsername, adminPassword)
       .run();
+  } else if (!env.ADMIN_PASSWORD && adminUsername === 'admin' && admin.password === '123456') {
+    await updateAccountPassword(db, admin.id, adminPassword);
   }
 }
 
