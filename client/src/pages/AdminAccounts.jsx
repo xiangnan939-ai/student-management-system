@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { KeyRound, RefreshCw, Save, Search, Shield, Trash2, UserCog, UsersRound, X } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 
@@ -17,8 +18,8 @@ const overlayStyle = {
 
 const modalStyle = {
   width: 'min(1080px, calc(100vw - 40px))',
-  height: 'min(760px, calc(100vh - 40px))',
-  maxHeight: 'calc(100vh - 40px)',
+  height: 'min(760px, calc(100dvh - 40px))',
+  maxHeight: 'calc(100dvh - 40px)',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
@@ -108,6 +109,8 @@ const AdminAccounts = () => {
     event.preventDefault();
     fetchStudents(studentKeyword);
   };
+
+  const renderModal = (content) => createPortal(content, document.body);
 
   const updateLocalPassword = (id, password) => {
     setAccounts((items) => items.map((account) => (
@@ -245,7 +248,7 @@ const AdminAccounts = () => {
         </button>
       </div>
 
-      {activeModal === 'admins' && (
+      {activeModal === 'admins' && renderModal(
         <div style={overlayStyle}>
           <div className="glass-panel" style={modalStyle}>
             <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
@@ -340,7 +343,7 @@ const AdminAccounts = () => {
         </div>
       )}
 
-      {activeModal === 'students' && (
+      {activeModal === 'students' && renderModal(
         <div style={overlayStyle}>
           <div className="glass-panel" style={modalStyle}>
             <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
