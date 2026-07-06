@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, RefreshCw, Save, Shield, Trash2, UserCog, UsersRound, X } from 'lucide-react';
+import { KeyRound, RefreshCw, Save, Search, Shield, Trash2, UserCog, UsersRound, X } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 
 const overlayStyle = {
@@ -9,20 +9,24 @@ const overlayStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '28px',
+  padding: '20px',
   background: 'rgba(0, 0, 0, 0.58)',
   backdropFilter: 'blur(8px)',
+  overflow: 'hidden',
 };
 
 const modalStyle = {
-  width: 'min(1080px, calc(100vw - 48px))',
-  maxHeight: 'calc(100vh - 72px)',
+  width: 'min(1080px, calc(100vw - 40px))',
+  height: 'min(760px, calc(100vh - 40px))',
+  maxHeight: 'calc(100vh - 40px)',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
 };
 
 const modalBodyStyle = {
+  flex: 1,
+  minHeight: 0,
   overflowY: 'auto',
   padding: '18px',
 };
@@ -34,6 +38,7 @@ const AdminAccounts = () => {
   const [adminLoading, setAdminLoading] = useState(false);
   const [studentLoading, setStudentLoading] = useState(false);
   const [savingId, setSavingId] = useState(null);
+  const [studentKeyword, setStudentKeyword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -63,12 +68,13 @@ const AdminAccounts = () => {
     }
   };
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (keyword = studentKeyword) => {
     setStudentLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/students?page=1&limit=100&keyword=', { headers: authHeaders() });
+      const query = encodeURIComponent(keyword.trim());
+      const response = await fetch(`/api/students?page=1&limit=100&keyword=${query}`, { headers: authHeaders() });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '学生账号读取失败');
       setStudents(data.data || []);
@@ -90,12 +96,17 @@ const AdminAccounts = () => {
     setActiveModal('students');
     setMessage('');
     setError('');
-    fetchStudents();
+    fetchStudents(studentKeyword);
   };
 
   const closeModal = () => {
     setActiveModal(null);
     setSavingId(null);
+  };
+
+  const searchStudents = (event) => {
+    event.preventDefault();
+    fetchStudents(studentKeyword);
   };
 
   const updateLocalPassword = (id, password) => {
@@ -237,7 +248,7 @@ const AdminAccounts = () => {
       {activeModal === 'admins' && (
         <div style={overlayStyle}>
           <div className="glass-panel" style={modalStyle}>
-            <div className="flex-between" style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
+            <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
               <div>
                 <h2 style={{ fontSize: '1.2rem' }}>管理员账户管理</h2>
                 <p style={{ color: 'var(--text-dim)', fontSize: '0.82rem', marginTop: '4px' }}>admin 账号只允许修改密码，不允许删除。</p>
@@ -332,13 +343,13 @@ const AdminAccounts = () => {
       {activeModal === 'students' && (
         <div style={overlayStyle}>
           <div className="glass-panel" style={modalStyle}>
-            <div className="flex-between" style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
+            <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
               <div>
                 <h2 style={{ fontSize: '1.2rem' }}>学生账户管理</h2>
                 <p style={{ color: 'var(--text-dim)', fontSize: '0.82rem', marginTop: '4px' }}>初始化后，学生可使用默认密码 123456 登录。</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button type="button" className="btn-secondary" onClick={fetchStudents} disabled={studentLoading} style={{ padding: '8px 12px' }}>
+                <button type="button" className="btn-secondary" onClick={() => fetchStudents(studentKeyword)} disabled={studentLoading} style={{ padding: '8px 12px' }}>
                   <RefreshCw size={16} /> 刷新
                 </button>
                 <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
@@ -348,6 +359,40 @@ const AdminAccounts = () => {
             </div>
 
             <div style={modalBodyStyle}>
+              <form
+                onSubmit={searchStudents}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '14px',
+                }}
+              >
+                <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                  <Search
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      left: '14px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--text-dim)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <input
+                    className="input-field"
+                    value={studentKeyword}
+                    onChange={(event) => setStudentKeyword(event.target.value)}
+                    placeholder="按学号或姓名搜索学生账号"
+                    style={{ paddingLeft: '40px' }}
+                  />
+                </div>
+                <button type="submit" className="btn-primary" disabled={studentLoading} style={{ padding: '10px 16px', flexShrink: 0 }}>
+                  <Search size={16} /> 搜索
+                </button>
+              </form>
+
               {studentLoading ? (
                 <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>学生账号加载中...</div>
               ) : (
