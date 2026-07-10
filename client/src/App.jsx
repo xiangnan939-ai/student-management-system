@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
 import LiquidGlassInteraction from './components/LiquidGlassInteraction';
+import MatrixRain from './components/MatrixRain';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -101,6 +102,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <MatrixRain />
       <LiquidGlassInteraction />
       <AppRoutes
         isAuthenticated={isAuthenticated}
