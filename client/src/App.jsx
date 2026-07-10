@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
-import LiquidGlassFilters from './components/LiquidGlassFilters';
 import LiquidGlassInteraction from './components/LiquidGlassInteraction';
 
 import Login from './pages/Login';
@@ -102,7 +101,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      <LiquidGlassFilters />
       <LiquidGlassInteraction />
       <AppRoutes
         isAuthenticated={isAuthenticated}

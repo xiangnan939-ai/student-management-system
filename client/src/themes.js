@@ -12,7 +12,7 @@ export const THEME_OPTIONS = [
     id: 'liquid-glass',
     name: '液态玻璃',
     tag: '折射高光',
-    description: '参考 Liquid Glass 的折射边缘、色差光边和弹性反馈，适合追求科技感的界面。',
+    description: '克制流动的环境色、分层玻璃材质与低频折射高光，兼顾科技感和长时间操作。',
     swatches: ['#071321', '#d8f6ff', '#b8a9ff'],
   },
   {

@@ -5,15 +5,12 @@ const TARGET_SELECTOR = [
   '.btn-primary',
   '.btn-secondary',
   '.theme-card',
-  '.input-field',
 ].join(',');
 
 const resetTarget = (target) => {
   if (!target) return;
   target.style.removeProperty('--liquid-local-x');
   target.style.removeProperty('--liquid-local-y');
-  target.style.removeProperty('--liquid-tilt-x');
-  target.style.removeProperty('--liquid-tilt-y');
 };
 
 const shouldTrackLiquidGlass = () => {
@@ -30,12 +27,8 @@ const LiquidGlassInteraction = () => {
     let lastRect = null;
     let lastRectAt = 0;
     let lastRunAt = 0;
-    let lastScreenX = null;
-    let lastScreenY = null;
     let lastLocalX = null;
     let lastLocalY = null;
-
-    const root = document.documentElement;
 
     const handlePointerMove = (event) => {
       latestEvent = event;
@@ -47,7 +40,7 @@ const LiquidGlassInteraction = () => {
         if (!currentEvent) return;
 
         const now = performance.now();
-        if (now - lastRunAt < 24) return;
+        if (now - lastRunAt < 40) return;
         lastRunAt = now;
 
         if (!shouldTrackLiquidGlass()) {
@@ -55,20 +48,6 @@ const LiquidGlassInteraction = () => {
           lastTarget = null;
           lastRect = null;
           return;
-        }
-
-        const xRatio = currentEvent.clientX / Math.max(window.innerWidth, 1);
-        const yRatio = currentEvent.clientY / Math.max(window.innerHeight, 1);
-        const screenX = Number((xRatio * 100).toFixed(1));
-        const screenY = Number((yRatio * 100).toFixed(1));
-
-        if (lastScreenX === null || Math.abs(screenX - lastScreenX) >= 0.7) {
-          root.style.setProperty('--liquid-screen-x', `${screenX}%`);
-          lastScreenX = screenX;
-        }
-        if (lastScreenY === null || Math.abs(screenY - lastScreenY) >= 0.7) {
-          root.style.setProperty('--liquid-screen-y', `${screenY}%`);
-          lastScreenY = screenY;
         }
 
         const target = currentEvent.target instanceof Element ? currentEvent.target.closest(TARGET_SELECTOR) : null;
@@ -82,7 +61,7 @@ const LiquidGlassInteraction = () => {
 
         if (!target) return;
 
-        const needsRect = !lastRect || now - lastRectAt > 180;
+        const needsRect = !lastRect || now - lastRectAt > 240;
         const rect = needsRect ? target.getBoundingClientRect() : lastRect;
         if (needsRect) {
           lastRect = rect;
@@ -95,21 +74,16 @@ const LiquidGlassInteraction = () => {
         if (
           lastLocalX !== null &&
           lastLocalY !== null &&
-          Math.abs(localX - lastLocalX) < 1.4 &&
-          Math.abs(localY - lastLocalY) < 1.4
+          Math.abs(localX - lastLocalX) < 2.2 &&
+          Math.abs(localY - lastLocalY) < 2.2
         ) {
           return;
         }
         lastLocalX = localX;
         lastLocalY = localY;
 
-        const dx = (localX - 50) / 50;
-        const dy = (localY - 50) / 50;
-
         target.style.setProperty('--liquid-local-x', `${localX.toFixed(1)}%`);
         target.style.setProperty('--liquid-local-y', `${localY.toFixed(1)}%`);
-        target.style.setProperty('--liquid-tilt-x', `${(-dy * 1.4).toFixed(2)}deg`);
-        target.style.setProperty('--liquid-tilt-y', `${(dx * 1.7).toFixed(2)}deg`);
       });
     };
 
@@ -128,7 +102,7 @@ const LiquidGlassInteraction = () => {
     };
 
     const observer = new MutationObserver(handleThemeOrMotionChange);
-    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     motionQuery.addEventListener?.('change', handleThemeOrMotionChange);

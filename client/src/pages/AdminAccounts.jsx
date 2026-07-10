@@ -250,7 +250,7 @@ const AdminAccounts = () => {
 
       {activeModal === 'admins' && renderModal(
         <div style={overlayStyle}>
-          <div className="glass-panel" style={modalStyle}>
+          <div className="glass-panel glass-panel-elevated" style={modalStyle}>
             <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
               <div>
                 <h2 style={{ fontSize: '1.2rem' }}>管理员账户管理</h2>
@@ -345,7 +345,7 @@ const AdminAccounts = () => {
 
       {activeModal === 'students' && renderModal(
         <div style={overlayStyle}>
-          <div className="glass-panel" style={modalStyle}>
+          <div className="glass-panel glass-panel-elevated" style={modalStyle}>
             <div className="flex-between" style={{ flexShrink: 0, padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
               <div>
                 <h2 style={{ fontSize: '1.2rem' }}>学生账户管理</h2>
