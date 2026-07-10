@@ -19,8 +19,8 @@ export const THEME_OPTIONS = [
     id: 'matrix',
     name: '黑客帝国',
     tag: '字符雨',
-    description: '黑色终端基底与持续下落的绿色英文字母，适合偏沉浸式的操作视图。',
-    swatches: ['#030804', '#6dff75', '#00b84f'],
+    description: '石墨黑玻璃、冰蓝交互与紫色折射，绿色字符雨只留在背景作为系统信号。',
+    swatches: ['#06080a', '#b6ddff', '#65db86'],
   },
 ];
 

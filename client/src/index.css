@@ -123,50 +123,55 @@
 
 :root[data-theme='matrix'] {
   color-scheme: dark;
-  --bg-dark: rgba(2, 9, 3, 0.72);
-  --bg-surface: rgba(3, 15, 5, 0.8);
-  --bg-surface-solid: rgba(2, 12, 4, 0.92);
-  --bg-elevated: rgba(8, 37, 12, 0.72);
-  --primary: #78ff80;
-  --primary-glow: rgba(85, 255, 112, 0.18);
-  --primary-hover: #b4ff9e;
-  --accent: #00cb58;
-  --accent-glow: rgba(0, 203, 88, 0.16);
-  --success: #8eff94;
-  --success-glow: rgba(142, 255, 148, 0.14);
-  --warning: #d2ff73;
-  --warning-glow: rgba(210, 255, 115, 0.14);
-  --danger: #ff7b7b;
-  --danger-glow: rgba(255, 123, 123, 0.14);
-  --text-main: #e6ffe8;
-  --text-muted: #a2dca8;
-  --text-dim: #5d9663;
-  --border-color: rgba(116, 255, 128, 0.16);
-  --border-highlight: rgba(136, 255, 146, 0.34);
-  --shadow-soft: 0 22px 64px rgba(0, 0, 0, 0.46);
-  --shadow-subtle: 0 12px 34px rgba(0, 0, 0, 0.32);
-  --glass-blur: 14px;
-  --glass-saturation: 1.06;
-  --panel-sheen: linear-gradient(132deg, rgba(145, 255, 145, 0.08), transparent 36%);
-  --edge-light: rgba(155, 255, 158, 0.22);
-  --control-surface: rgba(93, 255, 109, 0.055);
-  --control-surface-hover: rgba(93, 255, 109, 0.1);
-  --input-bg: rgba(1, 10, 3, 0.72);
-  --input-focus-bg: rgba(3, 22, 7, 0.9);
-  --placeholder-color: rgba(162, 220, 168, 0.54);
-  --table-header-bg: rgba(93, 255, 109, 0.06);
-  --table-row-border: rgba(93, 255, 109, 0.075);
-  --table-row-hover: rgba(93, 255, 109, 0.065);
-  --scroll-thumb: rgba(116, 255, 128, 0.22);
-  --scroll-thumb-hover: rgba(116, 255, 128, 0.36);
-  --button-shadow: 0 10px 26px rgba(0, 193, 72, 0.16);
-  --button-shadow-hover: 0 14px 34px rgba(0, 193, 72, 0.24);
-  --terminal-bg: rgba(0, 7, 2, 0.9);
-  --terminal-border: rgba(116, 255, 128, 0.16);
-  --primary-contrast: #021005;
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(10, 80, 25, 0.2), transparent 46%), #020703;
-  --selection-text: #021005;
-  --selection-bg: rgba(120, 255, 128, 0.9);
+  --bg-dark: rgba(8, 10, 13, 0.74);
+  --bg-surface: rgba(13, 17, 22, 0.82);
+  --bg-surface-solid: rgba(10, 13, 17, 0.94);
+  --bg-elevated: rgba(28, 34, 42, 0.76);
+  --primary: #b6ddff;
+  --primary-glow: rgba(118, 196, 255, 0.18);
+  --primary-hover: #e1f0ff;
+  --accent: #c5a4ff;
+  --accent-glow: rgba(197, 164, 255, 0.16);
+  --success: #65db86;
+  --success-glow: rgba(101, 219, 134, 0.14);
+  --warning: #ffcc78;
+  --warning-glow: rgba(255, 204, 120, 0.14);
+  --danger: #ff8796;
+  --danger-glow: rgba(255, 135, 150, 0.14);
+  --text-main: #f1f4f7;
+  --text-muted: #aeb7c2;
+  --text-dim: #707a86;
+  --border-color: rgba(222, 230, 238, 0.13);
+  --border-highlight: rgba(202, 227, 255, 0.3);
+  --shadow-soft: 0 24px 70px rgba(0, 0, 0, 0.5);
+  --shadow-subtle: 0 14px 38px rgba(0, 0, 0, 0.34);
+  --glass-blur: 16px;
+  --glass-saturation: 1.04;
+  --panel-sheen:
+    linear-gradient(132deg, rgba(208, 236, 255, 0.08), transparent 36%),
+    linear-gradient(304deg, rgba(197, 164, 255, 0.06), transparent 46%);
+  --edge-light: rgba(216, 230, 244, 0.2);
+  --control-surface: rgba(223, 231, 240, 0.055);
+  --control-surface-hover: rgba(223, 231, 240, 0.1);
+  --input-bg: rgba(5, 8, 11, 0.82);
+  --input-focus-bg: rgba(13, 19, 26, 0.94);
+  --placeholder-color: rgba(174, 183, 194, 0.5);
+  --table-header-bg: rgba(190, 214, 240, 0.055);
+  --table-row-border: rgba(222, 230, 238, 0.06);
+  --table-row-hover: rgba(118, 196, 255, 0.06);
+  --scroll-thumb: rgba(192, 207, 221, 0.18);
+  --scroll-thumb-hover: rgba(192, 207, 221, 0.3);
+  --button-shadow: 0 10px 28px rgba(66, 142, 208, 0.18);
+  --button-shadow-hover: 0 14px 36px rgba(66, 142, 208, 0.26);
+  --terminal-bg: rgba(3, 6, 9, 0.94);
+  --terminal-border: rgba(118, 196, 255, 0.16);
+  --primary-contrast: #08111b;
+  --body-bg:
+    radial-gradient(circle at 78% 12%, rgba(100, 150, 255, 0.09), transparent 32%),
+    radial-gradient(circle at 18% 88%, rgba(176, 128, 255, 0.07), transparent 34%),
+    #06080a;
+  --selection-text: #08111b;
+  --selection-bg: rgba(182, 221, 255, 0.9);
 }
 
 * {
@@ -200,7 +205,7 @@ body {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  opacity: 0.94;
+  opacity: 0.58;
 }
 
 :root[data-theme='matrix'] .matrix-rain-canvas {
@@ -248,6 +253,23 @@ body::after {
     linear-gradient(300deg, transparent 42%, rgba(189, 166, 255, 0.09) 50%, transparent 58%);
   animation: liquidPrismSweep 14s ease-in-out infinite alternate;
   will-change: transform, opacity;
+}
+
+:root[data-theme='matrix'] body::before {
+  z-index: 0;
+  opacity: 0.94;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(99, 175, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 8% 96%, rgba(188, 137, 255, 0.08), transparent 30%),
+    linear-gradient(138deg, #050709 0%, #0b0e13 52%, #06080a 100%);
+}
+
+:root[data-theme='matrix'] body::after {
+  z-index: 0;
+  opacity: 0.44;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 4px),
+    linear-gradient(112deg, transparent 34%, rgba(175, 221, 255, 0.045) 48%, transparent 62%);
 }
 
 @keyframes liquidColorFlow {
@@ -425,27 +447,28 @@ button, input, textarea, select, a {
 :root[data-theme='matrix'] .glass-panel,
 :root[data-theme='matrix'] .drawer-content {
   background:
-    linear-gradient(132deg, rgba(160, 255, 165, 0.08), transparent 34%),
-    rgba(2, 12, 4, 0.78);
-  backdrop-filter: blur(14px) saturate(1.04);
-  -webkit-backdrop-filter: blur(14px) saturate(1.04);
-  border-color: rgba(116, 255, 128, 0.18);
+    linear-gradient(132deg, rgba(201, 230, 255, 0.075), transparent 34%),
+    linear-gradient(302deg, rgba(197, 164, 255, 0.055), transparent 48%),
+    rgba(12, 16, 21, 0.8);
+  backdrop-filter: blur(16px) saturate(1.02);
+  -webkit-backdrop-filter: blur(16px) saturate(1.02);
+  border-color: rgba(222, 230, 238, 0.14);
   box-shadow:
-    inset 0 1px 1px rgba(171, 255, 177, 0.14),
+    inset 0 1px 1px rgba(230, 243, 255, 0.12),
     var(--shadow-subtle);
 }
 
 :root[data-theme='matrix'] .glass-panel::before {
-  opacity: 0.64;
+  opacity: 0.7;
   background:
-    linear-gradient(118deg, rgba(135, 255, 141, 0.1), transparent 28%),
-    linear-gradient(300deg, transparent 50%, rgba(0, 203, 88, 0.08), transparent 72%);
+    linear-gradient(118deg, rgba(167, 217, 255, 0.08), transparent 28%),
+    linear-gradient(300deg, transparent 50%, rgba(197, 164, 255, 0.065), transparent 72%);
 }
 
 :root[data-theme='matrix'] .glass-panel::after {
   opacity: 1;
-  border-color: rgba(116, 255, 128, 0.18);
-  box-shadow: inset 0 1px 1px rgba(171, 255, 177, 0.16);
+  border-color: rgba(222, 230, 238, 0.16);
+  box-shadow: inset 0 1px 1px rgba(230, 243, 255, 0.15);
 }
 
 :root[data-theme='liquid-glass'] .glass-panel-elevated,
@@ -586,27 +609,53 @@ button, input, textarea, select, a {
 }
 
 :root[data-theme='matrix'] .btn-primary {
-  color: #021005;
-  background: linear-gradient(135deg, #bdffac, #78ff80 58%, #39df6a);
-  border-color: rgba(207, 255, 201, 0.54);
+  color: #08111b;
+  background: linear-gradient(135deg, #ecf8ff 0%, #b6ddff 58%, #c5b6ff 100%);
+  border-color: rgba(230, 244, 255, 0.56);
 }
 
 :root[data-theme='matrix'] .btn-secondary {
   color: var(--text-main);
-  background: rgba(4, 28, 8, 0.72);
-  border-color: rgba(116, 255, 128, 0.22);
+  background: rgba(20, 25, 32, 0.74);
+  border-color: rgba(222, 230, 238, 0.16);
 }
 
 :root[data-theme='matrix'] .input-field {
-  background: rgba(1, 10, 3, 0.8);
-  border-color: rgba(116, 255, 128, 0.16);
-  box-shadow: inset 0 1px 1px rgba(171, 255, 177, 0.06);
+  background: rgba(5, 8, 11, 0.82);
+  border-color: rgba(222, 230, 238, 0.12);
+  box-shadow: inset 0 1px 1px rgba(230, 243, 255, 0.05);
 }
 
 :root[data-theme='matrix'] .input-field:focus {
-  border-color: rgba(144, 255, 150, 0.48);
-  background: rgba(3, 22, 7, 0.9);
-  box-shadow: 0 0 0 3px rgba(85, 255, 112, 0.1);
+  border-color: rgba(182, 221, 255, 0.48);
+  background: rgba(13, 19, 26, 0.94);
+  box-shadow: 0 0 0 3px rgba(118, 196, 255, 0.1);
+}
+
+:root[data-theme='matrix'] .data-table th {
+  color: #b6ddff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  background: rgba(182, 221, 255, 0.045);
+}
+
+:root[data-theme='matrix'] .data-table tr:hover td {
+  background: rgba(118, 196, 255, 0.06);
+}
+
+:root[data-theme='matrix'] .terminal-window {
+  background:
+    linear-gradient(132deg, rgba(182, 221, 255, 0.05), transparent 36%),
+    rgba(3, 6, 9, 0.94);
+  border-color: rgba(118, 196, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(230, 243, 255, 0.08),
+    var(--shadow-subtle);
+}
+
+:root[data-theme='matrix'] .terminal-header {
+  background: rgba(182, 221, 255, 0.045);
 }
 
 .btn-danger {
@@ -969,15 +1018,15 @@ button, input, textarea, select, a {
 }
 
 .theme-preview-matrix {
-  --preview-bg: #020703;
-  --preview-a: rgba(89, 255, 108, 0.26);
-  --preview-b: rgba(0, 203, 88, 0.18);
-  --preview-side: rgba(129, 255, 135, 0.12);
-  --preview-line: #aaff95;
-  --preview-pill: #3cdd66;
+  --preview-bg: #06080a;
+  --preview-a: rgba(182, 221, 255, 0.2);
+  --preview-b: rgba(197, 164, 255, 0.14);
+  --preview-side: rgba(222, 230, 238, 0.12);
+  --preview-line: #b6ddff;
+  --preview-pill: #c5b6ff;
   background:
-    repeating-linear-gradient(90deg, transparent 0 11px, rgba(97, 255, 112, 0.18) 11px 12px),
-    linear-gradient(180deg, #020703, #08200a);
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(91, 255, 108, 0.14) 11px 12px),
+    linear-gradient(135deg, #06080a, #151922);
 }
 
 .theme-preview-matrix::after {
@@ -1022,9 +1071,9 @@ button, input, textarea, select, a {
 
 :root[data-theme='matrix'] .theme-card {
   background:
-    linear-gradient(132deg, rgba(145, 255, 145, 0.08), transparent 42%),
-    rgba(2, 14, 5, 0.72);
-  border-color: rgba(116, 255, 128, 0.16);
+    linear-gradient(132deg, rgba(182, 221, 255, 0.07), transparent 42%),
+    rgba(12, 16, 21, 0.76);
+  border-color: rgba(222, 230, 238, 0.14);
 }
 
 .theme-card:disabled {
