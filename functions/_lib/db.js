@@ -59,7 +59,7 @@ export async function ensureDatabase(db) {
     await db.prepare("ALTER TABLE students ADD COLUMN theme TEXT NOT NULL DEFAULT 'default'").run();
   }
 
-  await db.prepare("UPDATE students SET theme = 'default' WHERE theme IS NULL OR theme = ''").run();
+  await db.prepare("UPDATE students SET theme = 'default' WHERE theme IS NULL OR theme = '' OR theme NOT IN ('default', 'liquid-glass', 'matrix')").run();
 
   const row = await db.prepare('SELECT COUNT(*) AS count FROM students').first();
   if (row?.count > 0) return;

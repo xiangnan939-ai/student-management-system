@@ -3,9 +3,7 @@ export const DEFAULT_THEME = 'default';
 export const VALID_THEMES = new Set([
   DEFAULT_THEME,
   'liquid-glass',
-  'morning-mist',
-  'midnight-blue',
-  'warm-paper',
+  'matrix',
 ]);
 
 export function normalizeTheme(theme) {

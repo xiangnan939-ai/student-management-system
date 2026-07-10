@@ -62,7 +62,7 @@ export async function ensureAccountStore(db, env) {
     await db.prepare("ALTER TABLE accounts ADD COLUMN theme TEXT NOT NULL DEFAULT 'default'").run();
   }
 
-  await db.prepare("UPDATE accounts SET theme = 'default' WHERE theme IS NULL OR theme = ''").run();
+  await db.prepare("UPDATE accounts SET theme = 'default' WHERE theme IS NULL OR theme = '' OR theme NOT IN ('default', 'liquid-glass', 'matrix')").run();
 
   const adminUsername = env.ADMIN_USER || 'admin';
   const adminPassword = env.ADMIN_PASSWORD || 'admin';
