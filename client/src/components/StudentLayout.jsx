@@ -28,8 +28,9 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
+    <div className="app-shell student-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
       <aside
+        className="app-sidebar"
         style={{
           width: collapsed ? '80px' : '240px',
           backgroundColor: 'var(--bg-surface)',
@@ -41,14 +42,20 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           zIndex: 50,
         }}
       >
-        <div style={{ height: '72px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid var(--border-color)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--success), var(--primary))', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
+        <div className="app-brand" style={{ height: '72px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid var(--border-color)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+          <div className="app-brand-badge" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--success), var(--primary))', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
             S
           </div>
-          {!collapsed && <span style={{ marginLeft: '12px', fontSize: '1.1rem', fontWeight: 600 }}>学生端</span>}
+          {!collapsed && (
+            <div className="app-brand-copy">
+              <span className="app-brand-name" style={{ marginLeft: '12px', fontSize: '1.1rem', fontWeight: 600 }}>学生端</span>
+              <span className="terminal-build">student_session // linked</span>
+            </div>
+          )}
         </div>
 
         <button
+          className="app-collapse-control"
           onClick={() => setCollapsed(!collapsed)}
           style={{
             position: 'absolute',
@@ -70,14 +77,16 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        <nav style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {navItems.map((item) => {
+        <nav className="app-nav" style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
+                className={`app-nav-link${isActive ? ' is-active' : ''}`}
+                data-terminal-index={String(index + 1).padStart(2, '0')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -99,28 +108,29 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           })}
         </nav>
 
-        <div style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
+        <div className="app-session" style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+          <div className="app-session-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
           </div>
           {!collapsed && (
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{username}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--success)' }}>学生在线</div>
+            <div className="app-session-copy" style={{ flex: 1 }}>
+              <div className="app-session-name" style={{ fontSize: '0.9rem', fontWeight: 600 }}>{username}</div>
+              <div className="app-session-status" style={{ fontSize: '0.75rem', color: 'var(--success)' }}>学生在线</div>
             </div>
           )}
         </div>
       </aside>
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-        <header style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-surface)', backdropFilter: 'blur(18px) saturate(1.08)', position: 'sticky', top: 0, zIndex: 40 }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>{breadcrumbMap[location.pathname] || '学生端'}</div>
-          <button onClick={handleLogout} title="退出登录" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+      <main className="app-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+        <header className="app-topbar" style={{ height: '72px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-surface)', backdropFilter: 'blur(18px) saturate(1.08)', position: 'sticky', top: 0, zIndex: 40 }}>
+          <div className="app-breadcrumb" style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}><span className="terminal-prompt">student@student-os:~$</span>{breadcrumbMap[location.pathname] || '学生端'}</div>
+          <button className="app-logout-control" onClick={handleLogout} title="退出登录" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <span className="terminal-logout-label">[ LOGOUT ]</span>
             <LogOut size={20} />
           </button>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
+        <div className="app-content" style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
           <Outlet />
         </div>
       </main>

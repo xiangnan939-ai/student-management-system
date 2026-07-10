@@ -192,8 +192,8 @@ const Settings = ({ currentUser, setCurrentUser }) => {
       </div>
 
       {activeModal === 'add' && (
-        <div style={modalBackdropStyle}>
-          <form style={modalStyle} onSubmit={saveAdmin}>
+        <div className="terminal-overlay" style={modalBackdropStyle}>
+          <form className="terminal-modal" style={modalStyle} onSubmit={saveAdmin}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.15rem' }}>添加管理员</h2>
               <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
@@ -230,8 +230,8 @@ const Settings = ({ currentUser, setCurrentUser }) => {
       )}
 
       {activeModal === 'password' && (
-        <div style={modalBackdropStyle}>
-          <form style={modalStyle} onSubmit={changePassword}>
+        <div className="terminal-overlay" style={modalBackdropStyle}>
+          <form className="terminal-modal" style={modalStyle} onSubmit={changePassword}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.15rem' }}>请输入新密码</h2>
               <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">
@@ -261,8 +261,8 @@ const Settings = ({ currentUser, setCurrentUser }) => {
       )}
 
       {activeModal === 'theme' && (
-        <div style={modalBackdropStyle}>
-          <div style={themeModalStyle}>
+        <div className="terminal-overlay" style={modalBackdropStyle}>
+          <div className="terminal-modal" style={themeModalStyle}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
               <button type="button" onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">

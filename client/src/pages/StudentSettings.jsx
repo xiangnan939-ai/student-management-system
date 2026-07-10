@@ -163,8 +163,8 @@ const StudentSettings = ({ currentUser, setCurrentUser }) => {
       </div>
 
       {themeModalOpen && (
-        <div style={modalBackdropStyle}>
-          <div style={themeModalStyle}>
+        <div className="terminal-overlay" style={modalBackdropStyle}>
+          <div className="terminal-modal" style={themeModalStyle}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <h2 style={{ fontSize: '1.15rem' }}>更换主题</h2>
               <button type="button" onClick={() => setThemeModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="关闭">

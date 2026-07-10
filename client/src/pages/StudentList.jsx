@@ -140,8 +140,8 @@ const StudentList = () => {
       </div>
 
       {/* 高级工具栏 */}
-      <div className="glass-panel" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flex: 1, maxWidth: '600px' }}>
+      <div className="glass-panel terminal-command-toolbar" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <form className="terminal-search-form" onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flex: 1, maxWidth: '600px' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
@@ -167,7 +167,7 @@ const StudentList = () => {
       </div>
 
       {/* 数据表格区域 */}
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
+      <div className="glass-panel terminal-data-panel" style={{ overflow: 'hidden' }}>
         {loading ? (
           <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>系统数据加载中...</div>
         ) : (
@@ -195,7 +195,7 @@ const StudentList = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>
+                        <div className="terminal-record-avatar" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>
                           <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${student.id}`} alt="avatar" style={{ width: 30, height: 30, borderRadius: '50%' }} />
                         </div>
                         <span style={{ fontWeight: 600 }}>{student.name}</span>
@@ -235,7 +235,7 @@ const StudentList = () => {
         )}
         
         {/* 分页控制器 */}
-        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="terminal-pagination" style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             显示第 {(page - 1) * 10 + 1} 到 {Math.min(page * 10, page * 10 /* need total items ideally, simplified here */)} 条，共 {totalPages} 页
           </div>

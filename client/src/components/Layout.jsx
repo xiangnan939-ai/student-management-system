@@ -111,9 +111,10 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
+    <div className="app-shell admin-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
       {/* 高级侧边栏 */}
-      <aside 
+      <aside
+        className="app-sidebar"
         style={{ 
           width: collapsed ? '80px' : '260px', 
           backgroundColor: 'var(--bg-surface)', 
@@ -126,7 +127,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         }}
       >
         {/* Logo 区域 */}
-        <div style={{ 
+        <div className="app-brand" style={{
           height: '72px', 
           display: 'flex', 
           alignItems: 'center', 
@@ -135,18 +136,20 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           overflow: 'hidden',
           whiteSpace: 'nowrap'
         }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
+          <div className="app-brand-badge" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
             OS
           </div>
           {!collapsed && (
-            <span style={{ marginLeft: '12px', fontSize: '1.2rem', fontWeight: 600, letterSpacing: 0 }}>
-              Student OS
-            </span>
+            <div className="app-brand-copy">
+              <span className="app-brand-name" style={{ marginLeft: '12px', fontSize: '1.2rem', fontWeight: 600, letterSpacing: 0 }}>Student OS</span>
+              <span className="terminal-build">v2.4.1 // node_online</span>
+            </div>
           )}
         </div>
 
         {/* 折叠按钮 */}
-        <button 
+        <button
+          className="app-collapse-control"
           onClick={() => setCollapsed(!collapsed)}
           style={{
             position: 'absolute',
@@ -169,14 +172,16 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         </button>
 
         {/* 导航菜单 */}
-        <nav style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {navItems.map(item => {
+        <nav className="app-nav" style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
+                className={`app-nav-link${isActive ? ' is-active' : ''}`}
+                data-terminal-index={String(index + 1).padStart(2, '0')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -200,14 +205,14 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         </nav>
 
         {/* 底部用户信息 */}
-        <div style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
+        <div className="app-session" style={{ padding: '24px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+          <div className="app-session-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid var(--border-highlight)' }}>
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
           </div>
           {!collapsed && (
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{username}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div className="app-session-copy" style={{ flex: 1 }}>
+              <div className="app-session-name" style={{ fontSize: '0.9rem', fontWeight: 600 }}>{username}</div>
+              <div className="app-session-status" style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span> Online
               </div>
             </div>
@@ -216,10 +221,10 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
       </aside>
 
       {/* 右侧主内容区 */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <main className="app-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
         
         {/* 顶部状态栏 (Top App Bar) */}
-        <header style={{ 
+        <header className="app-topbar" style={{
           height: '72px', 
           padding: '0 32px', 
           display: 'flex', 
@@ -233,13 +238,15 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
           zIndex: 40
         }}>
           {/* 面包屑 */}
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>
+          <div className="app-breadcrumb" style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>
+            <span className="terminal-prompt">root@student-os:~#</span>
             {currentPathName}
           </div>
 
           {/* 右侧工具栏 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="app-top-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
+              <span className="terminal-alert-label">[ ALERT {alerts.length} ]</span>
               <button
                 onClick={handleBellClick}
                 title="系统报错和崩溃记录"
@@ -306,10 +313,12 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
               )}
             </div>
             <button
+              className="app-logout-control"
               onClick={handleLogout}
               title="退出登录"
               style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
             >
+              <span className="terminal-logout-label">[ LOGOUT ]</span>
               <LogOut size={20} />
             </button>
             
@@ -318,7 +327,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         </header>
 
         {/* 路由视图容器 */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
+        <div className="app-content" style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
           <Outlet />
         </div>
       </main>
