@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Trash2,
 } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 import { displayBeijingTime } from '../time';
@@ -240,6 +241,66 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         return fb;
       }));
     } catch { /* ignore */ }
+  };
+
+  const [clearingAlerts, setClearingAlerts] = useState(false);
+  const handleClearAlerts = async () => {
+    if (!window.confirm('确定要清空所有系统告警记录吗？此操作不可恢复。')) return;
+    setClearingAlerts(true);
+    try {
+      const res = await fetch('/api/system-logs?levels=error,crash', {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setAlerts([]);
+        setAlertsUnread(false);
+        maxSeenAlertIdRef.current = 0;
+      }
+    } catch { /* ignore */ } finally {
+      setClearingAlerts(false);
+    }
+  };
+
+  const [deletingFb, setDeletingFb] = useState(null);
+  const handleDeleteFeedback = async (fbId) => {
+    if (!window.confirm('确定要删除这条反馈吗？回复也将一并删除，此操作不可恢复。')) return;
+    setDeletingFb(fbId);
+    try {
+      const res = await fetch(`/api/feedback/${fbId}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        const deleted = feedbacks.find(f => f.id === fbId);
+        setFeedbacks(prev => prev.filter(f => f.id !== fbId));
+        if (deleted && deleted.status === 'pending') {
+          setPendingCount(c => Math.max(0, c - 1));
+        }
+        setExpandedFeedback(null);
+      }
+    } catch { /* ignore */ } finally {
+      setDeletingFb(null);
+    }
+  };
+
+  const [clearingFeedbacks, setClearingFeedbacks] = useState(false);
+  const handleClearFeedbacks = async () => {
+    if (!window.confirm('确定要清空所有学生反馈记录吗？所有反馈和回复将被彻底删除，此操作不可恢复。')) return;
+    setClearingFeedbacks(true);
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setFeedbacks([]);
+        setPendingCount(0);
+        setExpandedFeedback(null);
+      }
+    } catch { /* ignore */ } finally {
+      setClearingFeedbacks(false);
+    }
   };
 
   const handleLogout = () => {
@@ -499,11 +560,36 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                   {/* Content */}
                   <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
                     {bellTab === 'feedback' ? (
-                      feedbackLoading ? (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
-                      ) : feedbacks.length === 0 ? (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>暂无学生反馈</div>
-                      ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
+                        {feedbacks.length > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={handleClearFeedbacks}
+                              disabled={clearingFeedbacks}
+                              style={{
+                                background: 'transparent',
+                                border: '1px solid rgba(239,68,68,0.3)',
+                                color: 'var(--danger)',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                padding: '4px 10px',
+                                borderRadius: '5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                opacity: clearingFeedbacks ? 0.6 : 1,
+                              }}
+                            >
+                              <Trash2 size={12} /> {clearingFeedbacks ? '清空中...' : '清空全部'}
+                            </button>
+                          </div>
+                        )}
+                        {feedbackLoading ? (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
+                        ) : feedbacks.length === 0 ? (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>暂无学生反馈</div>
+                        ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           {feedbacks.slice(0, 15).map((fb) => {
                             const typeCfg = TYPE_MAP[fb.type] || TYPE_MAP.feedback;
@@ -623,6 +709,24 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                                           )}
                                           <button
                                             type="button"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteFeedback(fb.id); }}
+                                            disabled={deletingFb === fb.id}
+                                            style={{
+                                              padding: '5px 10px',
+                                              fontSize: '0.75rem',
+                                              background: 'transparent',
+                                              border: '1px solid rgba(239,68,68,0.3)',
+                                              borderRadius: '5px',
+                                              color: 'var(--danger)',
+                                              cursor: 'pointer',
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '3px',
+                                              opacity: deletingFb === fb.id ? 0.6 : 1,
+                                            }}
+                                          ><Trash2 size={11} /> 删除</button>
+                                          <button
+                                            type="button"
                                             onClick={() => handleReply(fb.id)}
                                             disabled={replyingId === fb.id || !(replyContent[fb.id] || '').trim()}
                                             className="btn-primary"
@@ -639,28 +743,55 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                             );
                           })}
                         </div>
-                      )
+                        )}
+                      </div>
                     ) : (
-                      alertLoading ? (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
-                      ) : alerts.length > 0 ? (
-                        <div style={{ display: 'grid', gap: '10px' }}>
-                          {alerts.map((alert) => (
-                            <div key={alert.id} style={{ padding: '12px', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
-                                <span className="badge badge-blue">{alert.level}</span>
-                                <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{displayBeijingTime(alert.created_at)}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
+                        {alerts.length > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={handleClearAlerts}
+                              disabled={clearingAlerts}
+                              style={{
+                                background: 'transparent',
+                                border: '1px solid rgba(239,68,68,0.3)',
+                                color: 'var(--danger)',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                padding: '4px 10px',
+                                borderRadius: '5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                opacity: clearingAlerts ? 0.6 : 1,
+                              }}
+                            >
+                              <Trash2 size={12} /> {clearingAlerts ? '清空中...' : '清空全部'}
+                            </button>
+                          </div>
+                        )}
+                        {alertLoading ? (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
+                        ) : alerts.length > 0 ? (
+                          <div style={{ display: 'grid', gap: '10px' }}>
+                            {alerts.map((alert) => (
+                              <div key={alert.id} style={{ padding: '12px', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                                  <span className="badge badge-blue">{alert.level}</span>
+                                  <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{displayBeijingTime(alert.created_at)}</span>
+                                </div>
+                                <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{alert.message}</div>
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '5px' }}>
+                                  {alert.category} · {alert.actor || 'system'} {alert.ip && `· ${alert.ip}`}
+                                </div>
                               </div>
-                              <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{alert.message}</div>
-                              <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '5px' }}>
-                                {alert.category} · {alert.actor || 'system'} {alert.ip && `· ${alert.ip}`}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>暂无系统告警</div>
-                      )
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>暂无系统告警</div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

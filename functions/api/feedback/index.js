@@ -1,6 +1,6 @@
 import { json, requireDb } from '../../_lib/db.js';
 import { requireAuth, requireStudent, authenticatedAccount, authenticatedStudent } from '../../_lib/auth.js';
-import { createFeedback, listAllFeedback, countPendingFeedback } from '../../_lib/feedback.js';
+import { createFeedback, listAllFeedback, countPendingFeedback, deleteAllFeedback } from '../../_lib/feedback.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 const FEEDBACK_TYPES = new Set(['feedback', 'question', 'bug', 'suggestion']);
@@ -59,6 +59,28 @@ export async function onRequestPost({ request, env }) {
     return json({ success: true, id: feedbackId });
   } catch (error) {
     await writeErrorLog(db, error, { message: '学生提交反馈失败', category: 'feedback', ip: getClientIp(request) });
+    return json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function onRequestDelete({ request, env }) {
+  const db = requireDb(env);
+  try {
+    const admin = await authenticatedAccount(request, env);
+    if (!admin) return json({ error: '未授权' }, { status: 401 });
+
+    const deleted = await deleteAllFeedback(db);
+
+    await writeSystemLog(db, {
+      level: 'warning',
+      category: 'feedback',
+      message: `清空了所有学生反馈记录，共删除 ${deleted} 条反馈`,
+      actor: admin.username,
+    }, request);
+
+    return json({ success: true, deleted });
+  } catch (error) {
+    await writeErrorLog(db, error, { message: '清空反馈失败', category: 'feedback', ip: getClientIp(request) });
     return json({ error: error.message }, { status: 500 });
   }
 }

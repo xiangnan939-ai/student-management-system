@@ -257,3 +257,15 @@ export async function listSystemLogs(db, options = {}) {
     created_at: formatBeijingTimestamp(row.created_at),
   }));
 }
+
+export async function deleteSystemLogs(db, options = {}) {
+  await ensureSystemLogStore(db);
+
+  const { whereClause, bindings } = buildLogQuery(options);
+  if (!whereClause) {
+    const result = await db.prepare('DELETE FROM system_logs').run();
+    return result.meta?.changes || 0;
+  }
+  const result = await db.prepare(`DELETE FROM system_logs ${whereClause}`).bind(...bindings).run();
+  return result.meta?.changes || 0;
+}

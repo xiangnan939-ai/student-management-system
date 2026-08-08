@@ -1,6 +1,6 @@
 import { json, requireDb } from '../_lib/db.js';
 import { requireAuth } from '../_lib/auth.js';
-import { countSystemLogs, getRequestInfo, listSystemLogs, writeErrorLog } from '../_lib/systemLogs.js';
+import { countSystemLogs, deleteSystemLogs, getRequestInfo, listSystemLogs, writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   const db = requireDb(env);
@@ -51,6 +51,37 @@ export async function onRequestGet({ request, env }) {
     return json({ data: logs });
   } catch (error) {
     await writeErrorLog(db, error, { message: '系统日志读取失败', category: 'system-logs', ...reqInfo });
+    return json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function onRequestDelete({ request, env }) {
+  const db = requireDb(env);
+  const reqInfo = getRequestInfo(request);
+
+  try {
+    const unauthorized = await requireAuth(request, env);
+    if (unauthorized) return unauthorized;
+
+    const url = new URL(request.url);
+    const levels = (url.searchParams.get('levels') || url.searchParams.get('level') || '')
+      .split(',')
+      .map((level) => level.trim())
+      .filter(Boolean);
+    const category = url.searchParams.get('category') || '';
+
+    const options = { levels, category };
+    const deleted = await deleteSystemLogs(db, options);
+
+    await writeSystemLog(db, {
+      level: 'warning',
+      category: 'system-logs',
+      message: `清空了${levels.length ? levels.join('/') + '级别' : ''}系统日志，共删除 ${deleted} 条记录`,
+    }, request);
+
+    return json({ success: true, deleted });
+  } catch (error) {
+    await writeErrorLog(db, error, { message: '系统日志删除失败', category: 'system-logs', ...reqInfo });
     return json({ error: error.message }, { status: 500 });
   }
 }

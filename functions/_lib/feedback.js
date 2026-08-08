@@ -170,3 +170,17 @@ export async function markFeedbackReadByStudent(db, studentId, id) {
     UPDATE feedback SET status = 'closed', updated_at = ? WHERE id = ? AND student_id = ? AND status = 'replied'
   `).bind(now, id, studentId).run();
 }
+
+export async function deleteFeedback(db, id) {
+  await ensureFeedbackTables(db);
+  await db.prepare('DELETE FROM feedback_replies WHERE feedback_id = ?').bind(id).run();
+  const result = await db.prepare('DELETE FROM feedback WHERE id = ?').bind(id).run();
+  return result.meta?.changes || 0;
+}
+
+export async function deleteAllFeedback(db) {
+  await ensureFeedbackTables(db);
+  await db.prepare('DELETE FROM feedback_replies').run();
+  const result = await db.prepare('DELETE FROM feedback').run();
+  return result.meta?.changes || 0;
+}
