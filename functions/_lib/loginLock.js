@@ -22,6 +22,8 @@ export async function ensureLoginLockStore(db) {
       updated_at INTEGER NOT NULL DEFAULT 0
     )
   `).run();
+  // Drop legacy table from previous implementation
+  await db.prepare('DROP TABLE IF EXISTS login_attempts').run().catch(() => {});
 }
 
 function normalizeIp(ip) {
