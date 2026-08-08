@@ -22,10 +22,6 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const [alerts, setAlerts] = useState([]);
   const username = currentUser?.username || localStorage.getItem('username') || '管理员';
   const isAdmin = username === 'admin';
-  const beijingNow = () => new Date().toLocaleString('zh-CN', {
-    hour12: false,
-    timeZone: 'Asia/Shanghai',
-  });
 
   const navItems = [
     { path: '/dashboard', name: '系统看板', icon: LayoutDashboard },
@@ -64,7 +60,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         message: error.message,
         detail: '',
         actor: 'browser',
-        created_at: beijingNow(),
+        created_at: new Date().toISOString(),
       }]);
     } finally {
       setAlertLoading(false);

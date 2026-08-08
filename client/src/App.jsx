@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
 import LiquidGlassInteraction from './components/LiquidGlassInteraction';
+import LiquidGlassFilters from './components/LiquidGlassFilters';
 import MatrixRain from './components/MatrixRain';
 
 import Login from './pages/Login';
@@ -102,6 +103,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <LiquidGlassFilters />
       <MatrixRain />
       <LiquidGlassInteraction />
       <AppRoutes

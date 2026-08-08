@@ -41,26 +41,7 @@ const CourseManagement = () => {
   };
 
   useEffect(() => {
-    let ignore = false;
-
-    const loadCourses = async () => {
-      try {
-        const response = await fetch('/api/courses', { headers: authHeaders() });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || '课程读取失败');
-        if (!ignore) setCourses(data.data || []);
-      } catch (err) {
-        if (!ignore) setError(err.message);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
-
-    loadCourses();
-
-    return () => {
-      ignore = true;
-    };
+    fetchCourses();
   }, []);
 
   const openDrawer = (course = null) => {

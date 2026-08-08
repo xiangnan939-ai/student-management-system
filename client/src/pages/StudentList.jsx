@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Filter, Download, Trash2, Edit, X } from 'lucide-react';
+import { Search, Plus, Download, Trash2, Edit, X } from 'lucide-react';
 import { jsonHeaders, authHeaders } from '../api';
 
 const StudentList = () => {
   const [students, setStudents] = useState([]);
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState([]);
   
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -21,6 +21,7 @@ const StudentList = () => {
       .then(res => res.json())
       .then(data => {
         setStudents(data.data);
+        setTotal(data.total);
         setTotalPages(data.totalPages);
         setPage(data.page);
         setLoading(false);
@@ -87,16 +88,6 @@ const StudentList = () => {
       });
   };
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === students.length) setSelectedIds([]);
-    else setSelectedIds(students.map(s => s.id));
-  };
-
-  const toggleSelect = (id) => {
-    if (selectedIds.includes(id)) setSelectedIds(selectedIds.filter(i => i !== id));
-    else setSelectedIds([...selectedIds, id]);
-  };
-
   // 纯前端导出 CSV 功能
   const exportToCSV = () => {
     if (students.length === 0) return alert('没有数据可导出');
@@ -127,7 +118,7 @@ const StudentList = () => {
       <div className="flex-between">
         <div>
           <h1 style={{ fontSize: '1.8rem', marginBottom: '4px' }}>学籍管理</h1>
-          <p style={{ color: 'var(--text-muted)' }}>统一管理全校学生档案，支持千万级数据的多条件检索与批量导出</p>
+          <p style={{ color: 'var(--text-muted)' }}>统一管理全校学生档案，支持多条件检索与导出</p>
         </div>
         <div className="flex-center gap-4">
           <button className="btn-secondary" onClick={exportToCSV}>
@@ -139,14 +130,14 @@ const StudentList = () => {
         </div>
       </div>
 
-      {/* 高级工具栏 */}
+      {/* 工具栏 */}
       <div className="glass-panel terminal-command-toolbar" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <form className="terminal-search-form" onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flex: 1, maxWidth: '600px' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               type="text" 
-              placeholder="按学号或姓名精确检索..." 
+              placeholder="按学号或姓名检索..." 
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               className="input-field"
@@ -155,15 +146,6 @@ const StudentList = () => {
           </div>
           <button type="submit" className="btn-secondary">查询</button>
         </form>
-
-        <div className="flex-center gap-4">
-          <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-            <Filter size={16} /> 高级筛选
-          </button>
-          {selectedIds.length > 0 && (
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>已选择 {selectedIds.length} 项</span>
-          )}
-        </div>
       </div>
 
       {/* 数据表格区域 */}
@@ -175,12 +157,9 @@ const StudentList = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th style={{ width: '40px' }}>
-                    <input type="checkbox" checked={students.length > 0 && selectedIds.length === students.length} onChange={toggleSelectAll} style={{ accentColor: 'var(--primary)', cursor: 'pointer' }} />
-                  </th>
                   <th>学生档案</th>
                   <th>学号 (UID)</th>
-                  <th>状态</th>
+                  <th>性别</th>
                   <th>年龄</th>
                   <th>院系专业</th>
                   <th>联系电话</th>
@@ -190,9 +169,6 @@ const StudentList = () => {
               <tbody>
                 {students.map(student => (
                   <tr key={student.id}>
-                    <td>
-                      <input type="checkbox" checked={selectedIds.includes(student.id)} onChange={() => toggleSelect(student.id)} style={{ accentColor: 'var(--primary)', cursor: 'pointer' }} />
-                    </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div className="terminal-record-avatar" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>
@@ -224,7 +200,7 @@ const StudentList = () => {
                 ))}
                 {students.length === 0 && (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '60px', color: 'var(--text-dim)' }}>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '60px', color: 'var(--text-dim)' }}>
                       未检索到匹配的档案记录。
                     </td>
                   </tr>
@@ -237,7 +213,7 @@ const StudentList = () => {
         {/* 分页控制器 */}
         <div className="terminal-pagination" style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            显示第 {(page - 1) * 10 + 1} 到 {Math.min(page * 10, page * 10 /* need total items ideally, simplified here */)} 条，共 {totalPages} 页
+            共 {total} 条记录，第 {page} / {totalPages} 页
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
@@ -257,7 +233,7 @@ const StudentList = () => {
         </div>
       </div>
 
-      {/* 高级侧边抽屉 (Drawer) 表单 */}
+      {/* 侧边抽屉表单 */}
       {isDrawerOpen && (
         <div className="drawer-overlay" onClick={closeDrawer}>
           <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
