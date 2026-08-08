@@ -10,7 +10,6 @@ export function publicAccount(account) {
   return {
     id: account.id,
     username: account.username,
-    password: account.password,
     theme: normalizeTheme(account.theme),
     isAdmin: isRootAdmin(account.username),
     createdAt: account.created_at,

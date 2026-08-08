@@ -29,10 +29,16 @@ const Dashboard = () => {
   const [logLoading, setLogLoading] = useState(true);
 
   const fetchStats = () => {
-    fetch('/api/stats')
-      .then(res => res.json())
+    fetch('/api/stats', { headers: authHeaders() })
+      .then(res => {
+        if (!res.ok) throw new Error('统计数据加载失败');
+        return res.json();
+      })
       .then(data => setStats(data))
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setStats({ totalStudents: 0, genderDistribution: [], majorDistribution: [] });
+      });
   };
 
   const fetchAuditLogs = async () => {

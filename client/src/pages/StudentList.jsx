@@ -17,17 +17,21 @@ const StudentList = () => {
 
   const fetchStudents = useCallback((p = 1, k = keyword) => {
     setLoading(true);
-    fetch(`/api/students?page=${p}&limit=10&keyword=${encodeURIComponent(k)}`)
-      .then(res => res.json())
+    fetch(`/api/students?page=${p}&limit=10&keyword=${encodeURIComponent(k)}`, { headers: authHeaders() })
+      .then(res => {
+        if (!res.ok) throw new Error('学生列表加载失败');
+        return res.json();
+      })
       .then(data => {
-        setStudents(data.data);
-        setTotal(data.total);
-        setTotalPages(data.totalPages);
-        setPage(data.page);
+        setStudents(data.data || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+        setPage(data.page || p);
         setLoading(false);
       })
       .catch(err => {
         console.error(err);
+        setStudents([]);
         setLoading(false);
       });
   }, [keyword]);

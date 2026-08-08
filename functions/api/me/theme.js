@@ -17,7 +17,7 @@ export async function onRequestPut({ request, env }) {
     await ensureAccountStore(db, env);
 
     const updated = await db
-      .prepare('UPDATE accounts SET theme = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? RETURNING id, username, password, theme, created_at, updated_at')
+      .prepare('UPDATE accounts SET theme = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? RETURNING id, username, theme, created_at, updated_at')
       .bind(theme, auth.account.id)
       .first();
 
