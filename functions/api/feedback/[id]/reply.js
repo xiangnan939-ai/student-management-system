@@ -25,7 +25,7 @@ export async function onRequestPost({ request, env, params }) {
     await addReply(db, {
       feedbackId,
       adminUsername: admin.username,
-      adminName: loginUser(admin).displayName || admin.username,
+      adminName: loginUser(admin).name || admin.username,
       content,
       ip,
     });
