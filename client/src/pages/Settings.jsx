@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { KeyRound, Palette, Save, UserPlus, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { KeyRound, Palette, Save, UserPlus, X, ScrollText } from 'lucide-react';
 import { jsonHeaders } from '../api';
 import ThemePicker from '../components/ThemePicker';
 import { getStoredTheme, normalizeTheme, persistTheme, themeSavedMessage } from '../themes';
@@ -44,6 +45,7 @@ const themeModalBodyStyle = {
 };
 
 const Settings = ({ currentUser, setCurrentUser }) => {
+  const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
   const [adminForm, setAdminForm] = useState(emptyAdminForm);
   const [newPassword, setNewPassword] = useState('');
@@ -188,6 +190,15 @@ const Settings = ({ currentUser, setCurrentUser }) => {
           style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
         >
           <Palette size={18} /> 更换主题
+        </button>
+
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => navigate('/system-logs')}
+          style={{ width: 'fit-content', minWidth: '160px', justifyContent: 'center' }}
+        >
+          <ScrollText size={18} /> 操作日志
         </button>
       </div>
 
