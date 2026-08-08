@@ -1,7 +1,7 @@
 import { ensureDatabase, json, requireDb } from '../../../_lib/db.js';
 import { requireRootAdmin } from '../../../_lib/auth.js';
 import { clearLoginFailures } from '../../../_lib/loginLock.js';
-import { writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
 const DEFAULT_STUDENT_PASSWORD = '123456';
 
@@ -38,6 +38,7 @@ export async function onRequestPut({ request, env, params }) {
       category: 'student-account',
       message: `初始化学生密码：${student.id} ${student.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({
@@ -47,7 +48,7 @@ export async function onRequestPut({ request, env, params }) {
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '初始化学生密码失败', category: 'student-account' });
+      await writeErrorLog(db, error, { message: '初始化学生密码失败', category: 'student-account', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

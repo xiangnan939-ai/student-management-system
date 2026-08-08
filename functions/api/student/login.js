@@ -1,7 +1,7 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../_lib/db.js';
 import { studentSessionToken } from '../../_lib/auth.js';
 import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../../_lib/loginLock.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 import { normalizeTheme } from '../../_lib/themes.js';
 
 export async function onRequestPost({ request, env }) {
@@ -33,6 +33,7 @@ export async function onRequestPost({ request, env }) {
         category: 'auth',
         message: `学生登录失败：${studentId || '空学号'}`,
         actor: 'anonymous',
+        ip: getClientIp(request),
       });
 
       if (failure.locked) return json(failure, { status: 429 });
@@ -51,6 +52,7 @@ export async function onRequestPost({ request, env }) {
       category: 'auth',
       message: `学生登录成功：${student.id} ${student.name}`,
       actor: student.id,
+      ip: getClientIp(request),
     });
 
     return json({
@@ -67,7 +69,7 @@ export async function onRequestPost({ request, env }) {
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '学生登录接口异常', category: 'auth' });
+      await writeErrorLog(db, error, { message: '学生登录接口异常', category: 'auth', ip: getClientIp(request) });
     } catch {}
 
     return json({ success: false, message: error.message }, { status: 500 });

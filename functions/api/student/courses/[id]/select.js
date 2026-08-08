@@ -1,6 +1,6 @@
 import { ensureCourseStore, json, requireDb } from '../../../../_lib/db.js';
 import { requireStudent } from '../../../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../../../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env, params }) {
   try {
@@ -48,13 +48,14 @@ export async function onRequestPost({ request, env, params }) {
       category: 'course-selection',
       message: `学生选课：${auth.student.id} 选择课程 ${params.id}`,
       actor: auth.student.id,
+      ip: getClientIp(request),
     });
 
     return json({ message: '选课成功' }, { status: 201 });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '学生选课失败', category: 'course-selection' });
+      await writeErrorLog(db, error, { message: '学生选课失败', category: 'course-selection', ip: getClientIp(request) });
     } catch {}
 
     const message = String(error.message || '');
@@ -87,13 +88,14 @@ export async function onRequestDelete({ request, env, params }) {
       category: 'course-selection',
       message: `学生退选：${auth.student.id} 退选课程 ${params.id}`,
       actor: auth.student.id,
+      ip: getClientIp(request),
     });
 
     return json({ message: '退选成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '学生退选失败', category: 'course-selection' });
+      await writeErrorLog(db, error, { message: '学生退选失败', category: 'course-selection', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

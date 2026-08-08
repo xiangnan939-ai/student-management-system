@@ -1,6 +1,6 @@
 import { ensureCourseStore, json, requireDb } from '../../../../_lib/db.js';
 import { requireUser } from '../../../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../../../_lib/systemLogs.js';
 
 export async function onRequestDelete({ request, env, params }) {
   try {
@@ -36,13 +36,14 @@ export async function onRequestDelete({ request, env, params }) {
       category: 'course-selection',
       message: `管理员撤销选课：${student.id} ${student.name} / ${course.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '撤销成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '管理员撤销学生选课失败', category: 'course-selection' });
+      await writeErrorLog(db, error, { message: '管理员撤销学生选课失败', category: 'course-selection', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

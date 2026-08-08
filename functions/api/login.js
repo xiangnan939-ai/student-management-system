@@ -3,7 +3,7 @@ import { sessionToken } from '../_lib/auth.js';
 import { ensureAccountStore, getAccountByCredentials, loginUser } from '../_lib/accounts.js';
 import { requireDb } from '../_lib/db.js';
 import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../_lib/loginLock.js';
-import { writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -24,6 +24,7 @@ export async function onRequestPost({ request, env }) {
         category: 'auth',
         message: `管理员登录成功：${account.username}`,
         actor: account.username,
+        ip: getClientIp(request),
       });
 
       return json({
@@ -39,6 +40,7 @@ export async function onRequestPost({ request, env }) {
       category: 'auth',
       message: `管理员登录失败：${adminUsername || '空账号'}`,
       actor: 'anonymous',
+      ip: getClientIp(request),
     });
 
     if (failure.locked) return json(failure, { status: 429 });
@@ -51,7 +53,7 @@ export async function onRequestPost({ request, env }) {
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '管理员登录接口异常', category: 'auth' });
+      await writeErrorLog(db, error, { message: '管理员登录接口异常', category: 'auth', ip: getClientIp(request) });
     } catch {}
 
     return json({ success: false, message: error.message }, { status: 500 });

@@ -38,7 +38,7 @@ const Dashboard = () => {
     setLogLoading(true);
 
     try {
-      const response = await fetch('/api/system-logs?limit=8', { headers: authHeaders() });
+      const response = await fetch('/api/system-logs?limit=20', { headers: authHeaders() });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '系统日志读取失败');
       setAuditLogs(data.data || []);
@@ -166,7 +166,7 @@ const Dashboard = () => {
 
           <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '360px' }}>
             <div className="flex-between" style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>日志</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>系统日志 <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--text-dim)' }}>（自动保留最近 7 天）</span></h3>
               <button type="button" className="btn-secondary" onClick={fetchAuditLogs} disabled={logLoading} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
                 <RefreshCw size={14} /> 刷新
               </button>
@@ -184,10 +184,24 @@ const Dashboard = () => {
                     {idx !== auditLogs.length - 1 && <div style={{ flex: 1, width: '2px', background: 'var(--border-color)', marginTop: '4px' }}></div>}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 560 }}>{log.message}</div>
-                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px', lineHeight: 1.55 }}>
-                      <div>{log.category} · {log.actor || 'system'}</div>
-                      <div>{displayBeijingTime(log.created_at)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 560 }}>{log.message}</span>
+                      {log.ip && (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-dim)',
+                          fontFamily: 'monospace',
+                          border: '1px solid var(--border-color)'
+                        }}>IP: {log.ip}</span>
+                      )}
+                    </div>
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px', lineHeight: 1.55, display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      <span>📂 {log.category}</span>
+                      <span>👤 {log.actor || 'system'}</span>
+                      <span>🕐 {displayBeijingTime(log.created_at)}</span>
                     </div>
                   </div>
                 </div>

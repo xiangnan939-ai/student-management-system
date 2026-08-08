@@ -7,7 +7,7 @@ import {
   publicAccount,
   validateAccountInput,
 } from '../../_lib/accounts.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -42,13 +42,14 @@ export async function onRequestPost({ request, env }) {
       category: 'account',
       message: `新增管理员账号：${created.username}`,
       actor: auth.account?.username || 'admin',
+      ip: getClientIp(request),
     });
 
     return json({ message: '保存成功', account: publicAccount(created) }, { status: 201 });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '新增管理员账号失败', category: 'account' });
+      await writeErrorLog(db, error, { message: '新增管理员账号失败', category: 'account', ip: getClientIp(request) });
     } catch {}
 
     const message = String(error.message || '');

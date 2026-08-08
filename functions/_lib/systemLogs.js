@@ -1,5 +1,6 @@
 const LOG_LEVELS = new Set(['info', 'success', 'warning', 'error', 'crash']);
 const BEIJING_TIME_ZONE = 'Asia/Shanghai';
+const LOG_RETENTION_DAYS = 7;
 
 function datePartsInBeijing(date) {
   const parts = new Intl.DateTimeFormat('zh-CN', {
@@ -22,6 +23,13 @@ export function currentBeijingTimestamp() {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} +08:00`;
 }
 
+function beijingTimestampDaysAgo(days) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const parts = datePartsInBeijing(date);
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} +08:00`;
+}
+
 export function formatBeijingTimestamp(value) {
   if (!value) return currentBeijingTimestamp();
 
@@ -38,6 +46,15 @@ export function formatBeijingTimestamp(value) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} +08:00`;
 }
 
+export function getClientIp(request) {
+  if (!request) return '';
+  const headers = request.headers;
+  return headers.get('CF-Connecting-IP')
+    || headers.get('X-Forwarded-For')?.split(',')[0]?.trim()
+    || headers.get('X-Real-IP')
+    || '';
+}
+
 export async function ensureSystemLogStore(db) {
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS system_logs (
@@ -47,9 +64,28 @@ export async function ensureSystemLogStore(db) {
       message TEXT NOT NULL,
       detail TEXT,
       actor TEXT,
+      ip TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
+
+  const columns = await db.prepare('PRAGMA table_info(system_logs)').all();
+  const columnNames = new Set((columns.results || []).map((col) => col.name));
+
+  if (!columnNames.has('ip')) {
+    await db.prepare('ALTER TABLE system_logs ADD COLUMN ip TEXT').run();
+  }
+
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at)').run();
+}
+
+async function purgeOldLogs(db) {
+  try {
+    const cutoff = beijingTimestampDaysAgo(LOG_RETENTION_DAYS);
+    await db.prepare('DELETE FROM system_logs WHERE created_at < ?').bind(cutoff).run();
+  } catch {
+    // Best-effort cleanup; never block logging.
+  }
 }
 
 export async function writeSystemLog(db, input) {
@@ -61,17 +97,20 @@ export async function writeSystemLog(db, input) {
     const message = String(input.message || '').trim();
     const detail = input.detail ? String(input.detail).slice(0, 4000) : '';
     const actor = input.actor ? String(input.actor).trim() : 'system';
+    const ip = input.ip ? String(input.ip).trim() : '';
     const createdAt = currentBeijingTimestamp();
 
     if (!message) return;
 
     await db
       .prepare(`
-        INSERT INTO system_logs (level, category, message, detail, actor, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO system_logs (level, category, message, detail, actor, ip, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
-      .bind(level, category, message, detail, actor, createdAt)
+      .bind(level, category, message, detail, actor, ip, createdAt)
       .run();
+
+    purgeOldLogs(db);
   } catch {
     // Logging should never break the user-facing operation.
   }
@@ -84,11 +123,14 @@ export async function writeErrorLog(db, error, input = {}) {
     message: input.message || error?.message || '系统接口异常',
     detail: error?.stack || error?.message || String(error || ''),
     actor: input.actor || 'system',
+    ip: input.ip || '',
   });
 }
 
 export async function listSystemLogs(db, options = {}) {
   await ensureSystemLogStore(db);
+
+  purgeOldLogs(db);
 
   const limit = Math.min(Math.max(Number.parseInt(options.limit || '20', 10), 1), 100);
   const levels = (options.levels || [])
@@ -99,7 +141,7 @@ export async function listSystemLogs(db, options = {}) {
     const placeholders = levels.map(() => '?').join(', ');
     const rows = await db
       .prepare(`
-        SELECT id, level, category, message, detail, actor, created_at
+        SELECT id, level, category, message, detail, actor, ip, created_at
         FROM system_logs
         WHERE level IN (${placeholders})
         ORDER BY id DESC
@@ -116,7 +158,7 @@ export async function listSystemLogs(db, options = {}) {
 
   const rows = await db
     .prepare(`
-      SELECT id, level, category, message, detail, actor, created_at
+      SELECT id, level, category, message, detail, actor, ip, created_at
       FROM system_logs
       ORDER BY id DESC
       LIMIT ?

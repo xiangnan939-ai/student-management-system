@@ -1,6 +1,6 @@
 import { json, requireDb } from '../_lib/db.js';
 import { requireAuth } from '../_lib/auth.js';
-import { ensureSystemLogStore, listSystemLogs, writeErrorLog } from '../_lib/systemLogs.js';
+import { ensureSystemLogStore, getClientIp, listSystemLogs, writeErrorLog } from '../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   const db = requireDb(env);
@@ -21,7 +21,7 @@ export async function onRequestGet({ request, env }) {
     const logs = await listSystemLogs(db, { levels, limit });
     return json({ data: logs });
   } catch (error) {
-    await writeErrorLog(db, error, { message: '系统日志读取失败', category: 'system-logs' });
+    await writeErrorLog(db, error, { message: '系统日志读取失败', category: 'system-logs', ip: getClientIp(request) });
     return json({ error: error.message }, { status: 500 });
   }
 }

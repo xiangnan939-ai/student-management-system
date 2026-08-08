@@ -1,6 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb, validateStudent } from '../../_lib/db.js';
 import { requireUser } from '../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -64,13 +64,14 @@ export async function onRequestPost({ request, env }) {
       category: 'student',
       message: `新增学生档案：${student.id} ${student.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '新增成功', id: student.id }, { status: 201 });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '新增学生档案失败', category: 'student' });
+      await writeErrorLog(db, error, { message: '新增学生档案失败', category: 'student', ip: getClientIp(request) });
     } catch {}
 
     const status = String(error.message).includes('UNIQUE') ? 409 : 500;

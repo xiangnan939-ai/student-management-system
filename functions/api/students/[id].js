@@ -1,6 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb, validateStudent } from '../../_lib/db.js';
 import { requireUser } from '../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestPut({ request, env, params }) {
   try {
@@ -32,13 +32,14 @@ export async function onRequestPut({ request, env, params }) {
       category: 'student',
       message: `更新学生档案：${student.id} ${student.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '更新成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '更新学生档案失败', category: 'student' });
+      await writeErrorLog(db, error, { message: '更新学生档案失败', category: 'student', ip: getClientIp(request) });
     } catch {}
 
     const status = String(error.message).includes('UNIQUE') ? 409 : 500;
@@ -60,13 +61,14 @@ export async function onRequestDelete({ request, env, params }) {
       category: 'student',
       message: `删除学生档案：${params.id}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '删除成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '删除学生档案失败', category: 'student' });
+      await writeErrorLog(db, error, { message: '删除学生档案失败', category: 'student', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

@@ -9,7 +9,7 @@ import {
   updateAccount,
   validateAccountInput,
 } from '../../_lib/accounts.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestPut({ request, env, params }) {
   try {
@@ -35,6 +35,7 @@ export async function onRequestPut({ request, env, params }) {
       category: 'account',
       message: `更新管理员账号：${updated.username}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({
@@ -47,7 +48,7 @@ export async function onRequestPut({ request, env, params }) {
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '更新管理员账号失败', category: 'account' });
+      await writeErrorLog(db, error, { message: '更新管理员账号失败', category: 'account', ip: getClientIp(request) });
     } catch {}
 
     const message = String(error.message || '');
@@ -79,13 +80,14 @@ export async function onRequestDelete({ request, env, params }) {
       category: 'account',
       message: `删除管理员账号：${existing.username}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '删除成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '删除管理员账号失败', category: 'account' });
+      await writeErrorLog(db, error, { message: '删除管理员账号失败', category: 'account', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

@@ -1,6 +1,6 @@
 import { ensureCourseStore, json, readJson, requireDb, validateCourse } from '../../_lib/db.js';
 import { requireUser } from '../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestPut({ request, env, params }) {
   try {
@@ -39,13 +39,14 @@ export async function onRequestPut({ request, env, params }) {
       category: 'course',
       message: `更新课程：${updated.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '更新成功', course: { ...updated, selected_count: selected?.count || 0 } });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '更新课程失败', category: 'course' });
+      await writeErrorLog(db, error, { message: '更新课程失败', category: 'course', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });
@@ -70,13 +71,14 @@ export async function onRequestDelete({ request, env, params }) {
       category: 'course',
       message: `删除课程：${course?.name || params.id}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '删除成功' });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '删除课程失败', category: 'course' });
+      await writeErrorLog(db, error, { message: '删除课程失败', category: 'course', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

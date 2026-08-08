@@ -7,7 +7,7 @@ import {
   validateCourse,
 } from '../../_lib/db.js';
 import { requireAuth, requireUser } from '../../_lib/auth.js';
-import { writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -48,13 +48,14 @@ export async function onRequestPost({ request, env }) {
       category: 'course',
       message: `新增课程：${created.name}`,
       actor: auth.account.username,
+      ip: getClientIp(request),
     });
 
     return json({ message: '新增成功', course: { ...created, selected_count: 0 } }, { status: 201 });
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '新增课程失败', category: 'course' });
+      await writeErrorLog(db, error, { message: '新增课程失败', category: 'course', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });

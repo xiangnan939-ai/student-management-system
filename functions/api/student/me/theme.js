@@ -1,7 +1,7 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../../_lib/db.js';
 import { requireStudent } from '../../../_lib/auth.js';
 import { validateThemeInput } from '../../../_lib/themes.js';
-import { writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
+import { getClientIp, writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
 export async function onRequestPut({ request, env }) {
   try {
@@ -25,6 +25,7 @@ export async function onRequestPut({ request, env }) {
       category: 'student',
       message: `学生更换主题：${updated.id} ${updated.name}`,
       actor: updated.id,
+      ip: getClientIp(request),
     });
 
     return json({
@@ -40,7 +41,7 @@ export async function onRequestPut({ request, env }) {
   } catch (error) {
     try {
       const db = requireDb(env);
-      await writeErrorLog(db, error, { message: '学生更换主题失败', category: 'student' });
+      await writeErrorLog(db, error, { message: '学生更换主题失败', category: 'student', ip: getClientIp(request) });
     } catch {}
 
     return json({ error: error.message }, { status: 500 });
