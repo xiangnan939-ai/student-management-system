@@ -78,3 +78,34 @@ export function authHeaders(extra = {}) {
 export function jsonHeaders() {
   return authHeaders({ 'Content-Type': 'application/json' });
 }
+
+const KICKED_EVENT = 'auth:kicked';
+let interceptorInstalled = false;
+
+export function installAuthInterceptor() {
+  if (interceptorInstalled) return;
+  interceptorInstalled = true;
+
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    // Only intercept API calls
+    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+    if (response.status === 401 && url.startsWith('/api/')) {
+      try {
+        const clone = response.clone();
+        const data = await clone.json();
+        if (data?.code === 'SESSION_KICKED') {
+          window.dispatchEvent(new CustomEvent(KICKED_EVENT, {
+            detail: { message: data.error || '账号已在其他设备登录' },
+          }));
+        }
+      } catch {
+        // ignore non-JSON responses
+      }
+    }
+    return response;
+  };
+}
+
+export const AUTH_KICKED_EVENT = KICKED_EVENT;

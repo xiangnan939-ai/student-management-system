@@ -4,12 +4,21 @@ import {
   ensureAccountStore,
   getAccountByUsername,
   loginUser,
+  updateAccountTokenSid,
 } from './accounts.js';
 import { requireDb } from './db.js';
 import { normalizeTheme } from './themes.js';
 
 const TOKEN_PREFIX = 'student-os:';
 const TOKEN_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+
+const KICKED = Symbol.for('student-os:session-kicked');
+
+function generateSid() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
 
 function base64UrlEncode(bytes) {
   if (typeof bytes === 'string') {
@@ -79,26 +88,61 @@ async function verifyAndDecodeToken(token, env) {
   }
 }
 
-export async function sessionToken(account, env) {
+function isSessionKicked(result) {
+  return result === KICKED;
+}
+
+/**
+ * Create a new admin session: generates a fresh sid, persists it, signs a token.
+ * Any previously issued tokens for this account become invalid (single-device login).
+ */
+export async function createAdminSession(db, account, env) {
+  const sid = generateSid();
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     role: 'admin',
     sub: account.username,
+    sid,
     iat: now,
     exp: now + TOKEN_TTL_SECONDS,
   };
+  await updateAccountTokenSid(db, account.id, sid);
   return signToken(payload, env);
 }
 
-export async function studentSessionToken(student, env) {
+/**
+ * Create a new student session: generates a fresh sid, persists it, signs a token.
+ */
+export async function createStudentSession(db, student, env) {
+  const sid = generateSid();
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     role: 'student',
     sub: String(student.id),
+    sid,
     iat: now,
     exp: now + TOKEN_TTL_SECONDS,
   };
+  await db.prepare('UPDATE students SET token_sid = ? WHERE id = ?').bind(sid, student.id).run();
   return signToken(payload, env);
+}
+
+/**
+ * @deprecated Use createAdminSession instead (single-device enforcement).
+ * Kept for backwards compatibility; tokens issued via this function carry no sid
+ * and will be treated as a valid first session until a new login overwrites token_sid.
+ */
+export async function sessionToken(account, env) {
+  const db = requireDb(env);
+  return createAdminSession(db, account, env);
+}
+
+/**
+ * @deprecated Use createStudentSession instead.
+ */
+export async function studentSessionToken(student, env) {
+  const db = requireDb(env);
+  return createStudentSession(db, student, env);
 }
 
 function readBearerToken(request) {
@@ -116,7 +160,17 @@ export async function authenticatedAccount(request, env) {
   const payload = await verifyAndDecodeToken(token, env);
   if (!payload || payload.role !== 'admin' || !payload.sub) return null;
 
-  return getAccountByUsername(db, payload.sub);
+  const account = await getAccountByUsername(db, payload.sub);
+  if (!account) return null;
+
+  // Single-device enforcement: if the account has a token_sid recorded,
+  // the incoming token must carry the same sid, otherwise it's been superseded.
+  // If token_sid is NULL (legacy session pre-migration / no login yet), sid check is skipped.
+  if (account.token_sid && payload.sid !== account.token_sid) {
+    return KICKED;
+  }
+
+  return account;
 }
 
 export async function authenticatedStudent(request, env) {
@@ -129,14 +183,21 @@ export async function authenticatedStudent(request, env) {
   const payload = await verifyAndDecodeToken(token, env);
   if (!payload || payload.role !== 'student' || !payload.sub) return null;
 
-  return db
+  const student = await db
     .prepare(`
-      SELECT id, name, gender, age, major, phone, password_changed_at, theme
+      SELECT id, name, gender, age, major, phone, password_changed_at, theme, token_sid
       FROM students
       WHERE id = ?
     `)
     .bind(String(payload.sub).trim())
     .first();
+  if (!student) return null;
+
+  if (student.token_sid && payload.sid !== student.token_sid) {
+    return KICKED;
+  }
+
+  return student;
 }
 
 export function decodeTokenPayload(token) {
@@ -150,26 +211,35 @@ export function decodeTokenPayload(token) {
   }
 }
 
+function kickedResponse() {
+  return json({ error: '账号已在其他设备登录', code: 'SESSION_KICKED' }, { status: 401 });
+}
+
 export async function requireAuth(request, env) {
-  const account = await authenticatedAccount(request, env);
-  if (account) return null;
+  const result = await authenticatedAccount(request, env);
+  if (isSessionKicked(result)) return kickedResponse();
+  if (result) return null;
   return json({ error: '未登录或登录已过期' }, { status: 401 });
 }
 
 export async function requireAnyAuth(request, env) {
-  const account = await authenticatedAccount(request, env);
-  if (account) return { type: 'admin', account, user: loginUser(account) };
-  const student = await authenticatedStudent(request, env);
-  if (student) {
+  const accountResult = await authenticatedAccount(request, env);
+  if (isSessionKicked(accountResult)) return { response: kickedResponse() };
+  if (accountResult) {
+    return { type: 'admin', account: accountResult, user: loginUser(accountResult) };
+  }
+  const studentResult = await authenticatedStudent(request, env);
+  if (isSessionKicked(studentResult)) return { response: kickedResponse() };
+  if (studentResult) {
     return {
       type: 'student',
-      student,
+      student: studentResult,
       user: {
         role: 'student',
-        id: student.id,
-        username: student.id,
-        name: student.name,
-        theme: normalizeTheme(student.theme),
+        id: studentResult.id,
+        username: studentResult.id,
+        name: studentResult.name,
+        theme: normalizeTheme(studentResult.theme),
       },
     };
   }
@@ -177,11 +247,12 @@ export async function requireAnyAuth(request, env) {
 }
 
 export async function requireUser(request, env) {
-  const account = await authenticatedAccount(request, env);
-  if (!account) {
+  const result = await authenticatedAccount(request, env);
+  if (isSessionKicked(result)) return { response: kickedResponse() };
+  if (!result) {
     return { response: json({ error: '未登录或登录已过期' }, { status: 401 }) };
   }
-  return { account, user: loginUser(account) };
+  return { account: result, user: loginUser(result) };
 }
 
 export async function requireRootAdmin(request, env) {
@@ -194,18 +265,19 @@ export async function requireRootAdmin(request, env) {
 }
 
 export async function requireStudent(request, env) {
-  const student = await authenticatedStudent(request, env);
-  if (!student) {
+  const result = await authenticatedStudent(request, env);
+  if (isSessionKicked(result)) return { response: kickedResponse() };
+  if (!result) {
     return { response: json({ error: '学生未登录或登录已过期' }, { status: 401 }) };
   }
   return {
-    student,
+    student: result,
     user: {
       role: 'student',
-      id: student.id,
-      username: student.id,
-      name: student.name,
-      theme: normalizeTheme(student.theme),
+      id: result.id,
+      username: result.id,
+      name: result.name,
+      theme: normalizeTheme(result.theme),
     },
   };
 }

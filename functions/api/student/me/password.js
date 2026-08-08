@@ -2,6 +2,12 @@ import { ensureDatabase, json, readJson, requireDb } from '../../../_lib/db.js';
 import { requireStudent, studentSessionToken } from '../../../_lib/auth.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
+function generateSid() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function onRequestPut({ request, env }) {
   try {
     const auth = await requireStudent(request, env);
@@ -15,14 +21,18 @@ export async function onRequestPut({ request, env }) {
     const db = requireDb(env);
     await ensureDatabase(db);
 
+    // Rotate to a kill-sid first so other devices are immediately logged out.
+    // studentSessionToken below will overwrite this with the new session's sid.
+    const killSid = generateSid();
+
     const updated = await db
       .prepare(`
         UPDATE students
-        SET password = ?, password_changed_at = CURRENT_TIMESTAMP
+        SET password = ?, password_changed_at = CURRENT_TIMESTAMP, token_sid = ?
         WHERE id = ?
-        RETURNING id, name, gender, age, major, phone, password, password_changed_at, theme
+        RETURNING id, name, gender, age, major, phone, password, password_changed_at, theme, token_sid
       `)
-      .bind(nextPassword, auth.student.id)
+      .bind(nextPassword, killSid, auth.student.id)
       .first();
 
     await writeSystemLog(db, {

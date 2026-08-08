@@ -1,9 +1,15 @@
 import { normalizeTheme } from './themes.js';
 
-const ACCOUNT_SELECT = 'id, username, password, theme, created_at, updated_at';
+const ACCOUNT_SELECT = 'id, username, password, theme, token_sid, created_at, updated_at';
 
 export function isRootAdmin(username) {
   return String(username || '').trim() === 'admin';
+}
+
+function generateSid() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function publicAccount(account) {
@@ -59,6 +65,9 @@ export async function ensureAccountStore(db, env) {
   const columnNames = new Set((columns.results || []).map((column) => column.name));
   if (!columnNames.has('theme')) {
     await db.prepare("ALTER TABLE accounts ADD COLUMN theme TEXT NOT NULL DEFAULT 'default'").run();
+  }
+  if (!columnNames.has('token_sid')) {
+    await db.prepare('ALTER TABLE accounts ADD COLUMN token_sid TEXT').run();
   }
 
   await db.prepare("UPDATE accounts SET theme = 'default' WHERE theme IS NULL OR theme = '' OR theme NOT IN ('default', 'liquid-glass', 'matrix')").run();
@@ -116,22 +125,27 @@ export async function createAccount(db, account) {
 }
 
 export async function updateAccount(db, id, account) {
+  // Rotate token_sid so any existing sessions for this account are invalidated.
+  // Callers that want to keep the current device logged in (self-edit) will issue a
+  // new token immediately afterwards, which overwrites this kill-sid with a fresh one.
+  const killSid = generateSid();
   await db
     .prepare(`
       UPDATE accounts
-      SET username = ?, password = ?, updated_at = CURRENT_TIMESTAMP
+      SET username = ?, password = ?, token_sid = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `)
-    .bind(account.username, account.password, id)
+    .bind(account.username, account.password, killSid, id)
     .run();
 
   return getAccountById(db, id);
 }
 
 export async function updateAccountPassword(db, id, password) {
+  const killSid = generateSid();
   await db
-    .prepare('UPDATE accounts SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-    .bind(password, id)
+    .prepare('UPDATE accounts SET password = ?, token_sid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .bind(password, killSid, id)
     .run();
 
   return getAccountById(db, id);
@@ -139,4 +153,9 @@ export async function updateAccountPassword(db, id, password) {
 
 export async function deleteAccount(db, id) {
   return db.prepare('DELETE FROM accounts WHERE id = ?').bind(id).run();
+}
+
+export async function updateAccountTokenSid(db, id, sid) {
+  await db.prepare('UPDATE accounts SET token_sid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(sid, id).run();
+  return getAccountById(db, id);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import StudentLayout from './components/StudentLayout';
 import LiquidGlassInteraction from './components/LiquidGlassInteraction';
@@ -17,7 +17,7 @@ import Security from './pages/Security';
 import StudentCourseSelection from './pages/StudentCourseSelection';
 import StudentSettings from './pages/StudentSettings';
 import { applyTheme, DEFAULT_THEME, getStoredTheme, normalizeTheme } from './themes';
-import { getStoredUser } from './api';
+import { AUTH_KICKED_EVENT, clearAuth, getStoredUser, installAuthInterceptor } from './api';
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -31,6 +31,28 @@ const RoleRoute = ({ role, expectedRole, redirectTo, children }) => {
 
 const AppRoutes = ({ isAuthenticated, setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    installAuthInterceptor();
+  }, []);
+
+  useEffect(() => {
+    const handleKicked = (e) => {
+      const message = e.detail?.message || '账号已在其他设备登录';
+      clearAuth();
+      setIsAuthenticated(false);
+      setCurrentUser({ role: '', username: '', name: '', theme: getStoredTheme(), isAdmin: false });
+      // Small delay so the current API call finishes before redirect
+      setTimeout(() => {
+        alert(message);
+        navigate('/login', { replace: true });
+      }, 100);
+    };
+    window.addEventListener(AUTH_KICKED_EVENT, handleKicked);
+    return () => window.removeEventListener(AUTH_KICKED_EVENT, handleKicked);
+  }, [navigate, setIsAuthenticated, setCurrentUser]);
+
   useEffect(() => {
     const isLoginPage = location.pathname === '/login';
     applyTheme(isLoginPage ? DEFAULT_THEME : currentUser.theme || getStoredTheme());

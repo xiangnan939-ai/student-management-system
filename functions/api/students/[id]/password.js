@@ -2,6 +2,12 @@ import { ensureDatabase, json, requireDb } from '../../../_lib/db.js';
 import { requireRootAdmin } from '../../../_lib/auth.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
+function generateSid() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const DEFAULT_STUDENT_PASSWORD = '123456';
 
 export async function onRequestPut({ request, env, params }) {
@@ -12,13 +18,18 @@ export async function onRequestPut({ request, env, params }) {
     const db = requireDb(env);
     await ensureDatabase(db);
 
+    const studentId = String(params.id || '').trim();
+
+    // Invalidate existing session by rotating to a new random sid not returned to anyone
+    const killSid = generateSid();
+
     const result = await db
       .prepare(`
         UPDATE students
-        SET password = ?, password_changed_at = NULL
+        SET password = ?, password_changed_at = NULL, token_sid = ?
         WHERE id = ?
       `)
-      .bind(DEFAULT_STUDENT_PASSWORD, String(params.id || '').trim())
+      .bind(DEFAULT_STUDENT_PASSWORD, killSid, studentId)
       .run();
 
     if (!result.meta?.changes) {
@@ -27,7 +38,7 @@ export async function onRequestPut({ request, env, params }) {
 
     const student = await db
       .prepare('SELECT id, name, gender, age, major, phone, password_changed_at, theme FROM students WHERE id = ?')
-      .bind(String(params.id || '').trim())
+      .bind(studentId)
       .first();
 
     await writeSystemLog(db, {
