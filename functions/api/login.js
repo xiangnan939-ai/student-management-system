@@ -2,7 +2,7 @@ import { json, readJson } from '../_lib/db.js';
 import { sessionToken } from '../_lib/auth.js';
 import { ensureAccountStore, getAccountByCredentials, loginUser } from '../_lib/accounts.js';
 import { requireDb } from '../_lib/db.js';
-import { clearLoginFailures, getIpLoginLock, getLoginLock, recordIpLoginFailure, recordLoginFailure } from '../_lib/loginLock.js';
+import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env }) {
@@ -13,10 +13,7 @@ export async function onRequestPost({ request, env }) {
     const db = requireDb(env);
     await ensureAccountStore(db, env);
 
-    // Check IP-based lock first (defense against distributed brute force)
-    const ipLock = await getIpLoginLock(db, ip);
-    if (ipLock) return json(ipLock, { status: 429 });
-
+    // Per-username rate limiting (5 failures / 60s lock)
     const lock = await getLoginLock(db, 'admin', adminUsername);
     if (lock) return json(lock, { status: 429 });
 
@@ -39,9 +36,7 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    // Record failure per-username AND per-IP
     const failure = await recordLoginFailure(db, 'admin', adminUsername);
-    if (ip) await recordIpLoginFailure(db, ip);
 
     await writeSystemLog(db, {
       level: 'warning',
