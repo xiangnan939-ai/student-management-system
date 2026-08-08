@@ -35,7 +35,7 @@ export async function onRequestPut({ request, env }) {
 
     return json({
       message: '密码已修改',
-      token: studentSessionToken(updated),
+      token: await studentSessionToken(updated, env),
       user: {
         role: 'student',
         id: updated.id,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { KeyRound, RefreshCw, Save, Search, Shield, Trash2, UserCog, UsersRound, X } from 'lucide-react';
-import { authHeaders, jsonHeaders } from '../api';
+import { authHeaders, jsonHeaders, saveAuth } from '../api';
 
 const overlayStyle = {
   position: 'fixed',
@@ -135,11 +135,8 @@ const AdminAccounts = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '保存失败');
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('displayName', data.user.name || data.user.username);
-        localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+      if (data.token && data.user) {
+        saveAuth(data.token, { ...data.user, isAdmin: data.user.isAdmin !== false });
       }
 
       setAccounts((items) => items.map((item) => (item.id === account.id ? data.account : item)));

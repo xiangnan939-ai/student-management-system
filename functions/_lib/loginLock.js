@@ -1,5 +1,7 @@
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 60 * 1000;
+const IP_MAX_FAILED_ATTEMPTS = 20;
+const IP_LOCK_DURATION_MS = 10 * 60 * 1000;
 
 export async function ensureLoginAttemptStore(db) {
   await db.prepare(`
@@ -32,15 +34,65 @@ function lockPayload(lockedUntil) {
 export async function getLoginLock(db, scope, identifier) {
   await ensureLoginAttemptStore(db);
 
+  const key = normalizeIdentifier(identifier);
   const row = await db
     .prepare('SELECT failed_count, locked_until FROM login_attempts WHERE scope = ? AND identifier = ?')
-    .bind(scope, normalizeIdentifier(identifier))
+    .bind(scope, key)
     .first();
 
   if (Number(row?.locked_until || 0) > Date.now()) {
     return lockPayload(row.locked_until);
   }
 
+  return null;
+}
+
+export async function getIpLoginLock(db, ip) {
+  await ensureLoginAttemptStore(db);
+  const ipKey = ip ? `ip:${ip}` : '';
+  if (!ipKey) return null;
+
+  const row = await db
+    .prepare('SELECT failed_count, locked_until FROM login_attempts WHERE scope = ? AND identifier = ?')
+    .bind('ip', ipKey)
+    .first();
+
+  if (Number(row?.locked_until || 0) > Date.now()) {
+    return lockPayload(row.locked_until);
+  }
+  return null;
+}
+
+export async function recordIpLoginFailure(db, ip) {
+  await ensureLoginAttemptStore(db);
+  const ipKey = ip ? `ip:${ip}` : '';
+  if (!ipKey) return null;
+
+  const now = Date.now();
+  const row = await db
+    .prepare('SELECT failed_count, locked_until FROM login_attempts WHERE scope = ? AND identifier = ?')
+    .bind('ip', ipKey)
+    .first();
+
+  const existingLockedUntil = Number(row?.locked_until || 0);
+  const previousCount = existingLockedUntil > 0 && existingLockedUntil <= now ? 0 : Number(row?.failed_count || 0);
+  const failedCount = previousCount + 1;
+  const lockedUntil = failedCount >= IP_MAX_FAILED_ATTEMPTS ? now + IP_LOCK_DURATION_MS : 0;
+
+  await db
+    .prepare(`
+      INSERT INTO login_attempts (scope, identifier, failed_count, locked_until, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(scope, identifier)
+      DO UPDATE SET
+        failed_count = excluded.failed_count,
+        locked_until = excluded.locked_until,
+        updated_at = excluded.updated_at
+    `)
+    .bind('ip', ipKey, failedCount, lockedUntil, now)
+    .run();
+
+  if (lockedUntil > now) return lockPayload(lockedUntil);
   return null;
 }
 

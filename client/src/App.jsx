@@ -16,6 +16,7 @@ import SystemLogs from './pages/SystemLogs';
 import StudentCourseSelection from './pages/StudentCourseSelection';
 import StudentSettings from './pages/StudentSettings';
 import { applyTheme, DEFAULT_THEME, getStoredTheme, normalizeTheme } from './themes';
+import { getStoredUser } from './api';
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -94,13 +95,14 @@ const AppRoutes = ({ isAuthenticated, setIsAuthenticated, currentUser, setCurren
 };
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
+  const initialUser = getStoredUser();
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(initialUser.role));
   const [currentUser, setCurrentUser] = useState(() => ({
-    role: localStorage.getItem('role') || (localStorage.getItem('token') ? 'admin' : ''),
-    username: localStorage.getItem('username') || '',
-    name: localStorage.getItem('displayName') || '',
+    role: initialUser.role,
+    username: initialUser.username,
+    name: initialUser.name,
     theme: getStoredTheme(),
-    isAdmin: localStorage.getItem('isAdmin') === 'true',
+    isAdmin: initialUser.isAdmin,
   }));
 
   return (

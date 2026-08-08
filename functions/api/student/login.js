@@ -1,6 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../_lib/db.js';
 import { studentSessionToken } from '../../_lib/auth.js';
-import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../../_lib/loginLock.js';
+import { clearLoginFailures, getIpLoginLock, getLoginLock, recordIpLoginFailure, recordLoginFailure } from '../../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 import { normalizeTheme } from '../../_lib/themes.js';
 
@@ -9,16 +9,21 @@ export async function onRequestPost({ request, env }) {
     const { username, password } = await readJson(request);
     const studentId = String(username || '').trim();
     const studentPassword = String(password || '').trim();
+    const ip = getClientIp(request);
 
     const db = requireDb(env);
     await ensureDatabase(db);
+
+    // Check IP-based lock first (defense against distributed brute force)
+    const ipLock = await getIpLoginLock(db, ip);
+    if (ipLock) return json(ipLock, { status: 429 });
 
     const lock = await getLoginLock(db, 'student', studentId);
     if (lock) return json(lock, { status: 429 });
 
     const student = await db
       .prepare(`
-        SELECT id, name, gender, age, major, phone, password, password_changed_at, theme
+        SELECT id, name, gender, age, major, phone, password_changed_at, theme
         FROM students
         WHERE id = ? AND password = ?
       `)
@@ -27,13 +32,14 @@ export async function onRequestPost({ request, env }) {
 
     if (!student) {
       const failure = await recordLoginFailure(db, 'student', studentId);
+      if (ip) await recordIpLoginFailure(db, ip);
 
       await writeSystemLog(db, {
         level: 'warning',
         category: 'auth',
         message: `学生登录失败：${studentId || '空学号'}`,
         actor: 'anonymous',
-        ip: getClientIp(request),
+        ip,
       });
 
       if (failure.locked) return json(failure, { status: 429 });
@@ -52,12 +58,12 @@ export async function onRequestPost({ request, env }) {
       category: 'auth',
       message: `学生登录成功：${student.id} ${student.name}`,
       actor: student.id,
-      ip: getClientIp(request),
+      ip,
     });
 
     return json({
       success: true,
-      token: studentSessionToken(student),
+      token: await studentSessionToken(student, env),
       user: {
         role: 'student',
         id: student.id,

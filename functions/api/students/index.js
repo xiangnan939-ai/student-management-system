@@ -4,6 +4,9 @@ import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLog
 
 export async function onRequestGet({ request, env }) {
   try {
+    const auth = await requireUser(request, env);
+    if (auth.response) return auth.response;
+
     const db = requireDb(env);
     await ensureDatabase(db);
 

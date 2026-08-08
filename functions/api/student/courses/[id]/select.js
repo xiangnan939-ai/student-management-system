@@ -78,15 +78,31 @@ export async function onRequestDelete({ request, env, params }) {
     const db = requireDb(env);
     await ensureCourseStore(db);
 
+    const courseId = String(params.id || '').trim();
+
+    // Verify course exists
+    const course = await db
+      .prepare('SELECT id, name FROM courses WHERE id = ?')
+      .bind(courseId)
+      .first();
+    if (!course) return json({ error: '课程不存在' }, { status: 404 });
+
+    // Verify enrollment
+    const enrolled = await db
+      .prepare('SELECT id FROM student_courses WHERE student_id = ? AND course_id = ?')
+      .bind(auth.student.id, courseId)
+      .first();
+    if (!enrolled) return json({ error: '您未选修该课程' }, { status: 400 });
+
     await db
       .prepare('DELETE FROM student_courses WHERE student_id = ? AND course_id = ?')
-      .bind(auth.student.id, params.id)
+      .bind(auth.student.id, courseId)
       .run();
 
     await writeSystemLog(db, {
       level: 'warning',
       category: 'course-selection',
-      message: `学生退选：${auth.student.id} 退选课程 ${params.id}`,
+      message: `学生退选：${auth.student.id} 退选课程 ${course.name}(${courseId})`,
       actor: auth.student.id,
       ip: getClientIp(request),
     });

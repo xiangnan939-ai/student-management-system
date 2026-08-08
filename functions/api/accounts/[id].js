@@ -38,12 +38,15 @@ export async function onRequestPut({ request, env, params }) {
       ip: getClientIp(request),
     });
 
+    const isSelf = String(auth.account.id) === String(params.id);
+    const selfExtra = isSelf
+      ? { token: await sessionToken(updated, env), user: loginUser(updated) }
+      : {};
+
     return json({
       message: '保存成功',
       account: publicAccount(updated),
-      ...(String(auth.account.id) === String(params.id)
-        ? { token: sessionToken(updated), user: loginUser(updated) }
-        : {}),
+      ...selfExtra,
     });
   } catch (error) {
     try {

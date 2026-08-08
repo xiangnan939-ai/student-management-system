@@ -1,7 +1,11 @@
 import { ensureDatabase, json, requireDb } from '../_lib/db.js';
+import { requireAnyAuth } from '../_lib/auth.js';
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
   try {
+    const auth = await requireAnyAuth(request, env);
+    if (auth.response) return auth.response;
+
     const db = requireDb(env);
     await ensureDatabase(db);
 

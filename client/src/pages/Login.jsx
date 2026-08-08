@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Cpu, ArrowRight } from 'lucide-react';
 import { normalizeTheme } from '../themes';
+import { saveAuth } from '../api';
 import loginBackdrop from '../assets/login-ambient-bg.jpg';
 
 const Login = ({ setIsAuthenticated, setCurrentUser }) => {
@@ -44,16 +45,13 @@ const Login = ({ setIsAuthenticated, setCurrentUser }) => {
       const data = await res.json();
       if (data.success) {
         setLockedUntil(0);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.user.role || loginType);
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('displayName', data.user.name || data.user.username);
-        localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+        const role = data.user.role || loginType;
         const theme = normalizeTheme(data.user.theme);
-        localStorage.setItem('theme', theme);
-        setCurrentUser?.({ ...data.user, role: data.user.role || loginType, theme, isAdmin: data.user.isAdmin || false });
+        const userInfo = { ...data.user, role, theme, isAdmin: role === 'admin' };
+        saveAuth(data.token, userInfo);
+        setCurrentUser?.(userInfo);
         setIsAuthenticated(true);
-        navigate((data.user.role || loginType) === 'student' ? '/student/course-selection' : '/dashboard');
+        navigate(role === 'student' ? '/student/course-selection' : '/dashboard');
       } else {
         setError(data.message);
         if (data.locked && data.lockedUntil) {

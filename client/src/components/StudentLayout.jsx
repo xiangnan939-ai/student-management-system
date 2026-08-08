@@ -10,11 +10,10 @@ import {
   Send,
   MessageSquare,
   PlusCircle,
-  RefreshCw,
   CheckCircle,
   Clock,
 } from 'lucide-react';
-import { authHeaders, jsonHeaders } from '../api';
+import { authHeaders, clearAuth, jsonHeaders } from '../api';
 import { displayBeijingTime } from '../time';
 
 const TYPE_MAP = {
@@ -156,11 +155,7 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
-    localStorage.removeItem('displayName');
-    localStorage.removeItem('isAdmin');
+    clearAuth();
     setCurrentUser?.({ role: '', username: '', name: '', isAdmin: false });
     setIsAuthenticated(false);
   };
@@ -455,18 +450,13 @@ const StudentLayout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                         </button>
                       </form>
                     ) : (
-                      loading ? (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
-                      ) : feedbacks.length === 0 ? (
-                        <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>你还没有提交过反馈</div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          <div style={{ textAlign: 'right' }}>
-                            <button type="button" onClick={fetchMyFeedbacks} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <RefreshCw size={12} /> 刷新
-                            </button>
-                          </div>
-                          {feedbacks.map(fb => {
+                        loading ? (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>
+                        ) : feedbacks.length === 0 ? (
+                          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>你还没有提交过反馈</div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {feedbacks.map(fb => {
                             const typeCfg = TYPE_MAP[fb.type] || TYPE_MAP.feedback;
                             const statusCfg = STATUS_MAP[fb.status] || STATUS_MAP.pending;
                             const StatusIcon = statusCfg.icon;

@@ -27,7 +27,7 @@ export async function onRequestPut({ request, env }) {
 
     return json({
       message: '密码已修改',
-      token: sessionToken(updated),
+      token: await sessionToken(updated, env),
       user: loginUser(updated),
     });
   } catch (error) {

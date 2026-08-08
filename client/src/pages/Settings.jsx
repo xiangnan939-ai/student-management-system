@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, Palette, Save, UserPlus, X, ScrollText } from 'lucide-react';
-import { jsonHeaders } from '../api';
+import { jsonHeaders, saveAuth } from '../api';
 import ThemePicker from '../components/ThemePicker';
 import { getStoredTheme, normalizeTheme, persistTheme, themeSavedMessage } from '../themes';
 
@@ -100,14 +100,14 @@ const Settings = ({ currentUser, setCurrentUser }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '修改失败');
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('username', data.user.username);
-      localStorage.setItem('displayName', data.user.name || data.user.username);
-      localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       if (data.user.theme) {
         const theme = persistTheme(data.user.theme);
         setActiveTheme(theme);
-        setCurrentUser?.((user) => ({ ...user, ...data.user, theme }));
+        const userInfo = { ...data.user, theme, isAdmin: data.user.role === 'admin' };
+        saveAuth(data.token, userInfo);
+        setCurrentUser?.((user) => ({ ...user, ...userInfo }));
+      } else {
+        saveAuth(data.token, { ...data.user, isAdmin: data.user.role === 'admin' });
       }
       setMessage('密码已修改');
       closeModal();

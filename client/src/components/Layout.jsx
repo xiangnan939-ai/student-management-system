@@ -17,7 +17,7 @@ import {
   Clock,
   Trash2,
 } from 'lucide-react';
-import { authHeaders, jsonHeaders } from '../api';
+import { authHeaders, clearAuth, jsonHeaders } from '../api';
 import { displayBeijingTime } from '../time';
 
 const TYPE_MAP = {
@@ -304,11 +304,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
-    localStorage.removeItem('displayName');
-    localStorage.removeItem('isAdmin');
+    clearAuth();
     setCurrentUser?.({ role: '', username: '', name: '', isAdmin: false });
     setIsAuthenticated(false);
   };
