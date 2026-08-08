@@ -1,6 +1,6 @@
 import { ensureDatabase, json, readJson, requireDb } from '../../_lib/db.js';
 import { studentSessionToken } from '../../_lib/auth.js';
-import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../../_lib/loginLock.js';
+import { clearIpLock, getIpLock, recordIpFailure } from '../../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../_lib/systemLogs.js';
 import { normalizeTheme } from '../../_lib/themes.js';
 
@@ -14,8 +14,8 @@ export async function onRequestPost({ request, env }) {
     const db = requireDb(env);
     await ensureDatabase(db);
 
-    // Per-student-ID rate limiting (5 failures / 60s lock)
-    const lock = await getLoginLock(db, 'student', studentId);
+    // IP-based rate limiting (progressive lockout)
+    const lock = await getIpLock(db, ip);
     if (lock) return json(lock, { status: 429 });
 
     const student = await db
@@ -28,7 +28,7 @@ export async function onRequestPost({ request, env }) {
       .first();
 
     if (!student) {
-      const failure = await recordLoginFailure(db, 'student', studentId);
+      const failure = await recordIpFailure(db, ip);
 
       await writeSystemLog(db, {
         level: 'warning',
@@ -42,12 +42,12 @@ export async function onRequestPost({ request, env }) {
 
       return json({
         success: false,
-        message: `学号或密码错误，还可尝试 ${failure.remainingAttempts} 次`,
+        message: failure.message,
         remainingAttempts: failure.remainingAttempts,
       }, { status: 401 });
     }
 
-    await clearLoginFailures(db, 'student', studentId);
+    await clearIpLock(db, ip);
 
     await writeSystemLog(db, {
       level: 'success',

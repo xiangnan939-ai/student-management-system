@@ -2,7 +2,7 @@ import { json, readJson } from '../_lib/db.js';
 import { sessionToken } from '../_lib/auth.js';
 import { ensureAccountStore, getAccountByCredentials, loginUser } from '../_lib/accounts.js';
 import { requireDb } from '../_lib/db.js';
-import { clearLoginFailures, getLoginLock, recordLoginFailure } from '../_lib/loginLock.js';
+import { clearIpLock, getIpLock, recordIpFailure } from '../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env }) {
@@ -13,13 +13,13 @@ export async function onRequestPost({ request, env }) {
     const db = requireDb(env);
     await ensureAccountStore(db, env);
 
-    // Per-username rate limiting (5 failures / 60s lock)
-    const lock = await getLoginLock(db, 'admin', adminUsername);
+    // IP-based rate limiting (progressive lockout)
+    const lock = await getIpLock(db, ip);
     if (lock) return json(lock, { status: 429 });
 
     const account = await getAccountByCredentials(db, adminUsername, password);
     if (account) {
-      await clearLoginFailures(db, 'admin', adminUsername);
+      await clearIpLock(db, ip);
 
       await writeSystemLog(db, {
         level: 'success',
@@ -36,7 +36,7 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    const failure = await recordLoginFailure(db, 'admin', adminUsername);
+    const failure = await recordIpFailure(db, ip);
 
     await writeSystemLog(db, {
       level: 'warning',
@@ -50,7 +50,7 @@ export async function onRequestPost({ request, env }) {
 
     return json({
       success: false,
-      message: `用户名或密码错误，还可尝试 ${failure.remainingAttempts} 次`,
+      message: failure.message,
       remainingAttempts: failure.remainingAttempts,
     }, { status: 401 });
   } catch (error) {

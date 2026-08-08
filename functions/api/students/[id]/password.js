@@ -1,6 +1,5 @@
 import { ensureDatabase, json, requireDb } from '../../../_lib/db.js';
 import { requireRootAdmin } from '../../../_lib/auth.js';
-import { clearLoginFailures } from '../../../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../../../_lib/systemLogs.js';
 
 const DEFAULT_STUDENT_PASSWORD = '123456';
@@ -30,8 +29,6 @@ export async function onRequestPut({ request, env, params }) {
       .prepare('SELECT id, name, gender, age, major, phone, password_changed_at, theme FROM students WHERE id = ?')
       .bind(String(params.id || '').trim())
       .first();
-
-    await clearLoginFailures(db, 'student', student.id);
 
     await writeSystemLog(db, {
       level: 'warning',
