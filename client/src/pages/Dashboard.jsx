@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line, CartesianGrid } from 'recharts';
-import { Users, GraduationCap, Activity, Cpu, RefreshCw } from 'lucide-react';
+import { Users, GraduationCap, Activity, Cpu, RefreshCw, ArrowRight } from 'lucide-react';
 import { authHeaders } from '../api';
 import { displayBeijingTime } from '../time';
 
@@ -38,7 +39,7 @@ const Dashboard = () => {
     setLogLoading(true);
 
     try {
-      const response = await fetch('/api/system-logs?limit=20', { headers: authHeaders() });
+      const response = await fetch('/api/system-logs?limit=6', { headers: authHeaders() });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '系统日志读取失败');
       setAuditLogs(data.data || []);
@@ -109,7 +110,10 @@ const Dashboard = () => {
           <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>节点健康度: Excellent</div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <Link to="/system-logs" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <div className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s ease' }}
+             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
           <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.1 }}><Cpu size={120} /></div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning)' }}></div>
@@ -118,10 +122,11 @@ const Dashboard = () => {
           <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-main)' }}>
             {auditLogs.length}
           </div>
-          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-            近期真实系统日志
+          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            查看全部日志 <ArrowRight size={14} />
           </div>
         </div>
+        </Link>
       </div>
 
       {/* 图表与日志区域 */}
@@ -164,49 +169,45 @@ const Dashboard = () => {
           </div>
         </div>
 
-          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '360px' }}>
+          <div className="glass-panel fade-in-up delay-300" style={{ padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '320px' }}>
             <div className="flex-between" style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>系统日志 <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--text-dim)' }}>（自动保留最近 7 天）</span></h3>
-              <button type="button" className="btn-secondary" onClick={fetchAuditLogs} disabled={logLoading} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
-                <RefreshCw size={14} /> 刷新
-              </button>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>最近操作</h3>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button type="button" className="btn-secondary" onClick={fetchAuditLogs} disabled={logLoading} style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
+                  <RefreshCw size={14} className={logLoading ? 'spin' : ''} /> 刷新
+                </button>
+                <Link to="/system-logs" style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--primary)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  全部日志 <ArrowRight size={12} />
+                </Link>
+              </div>
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', paddingRight: '4px' }}>
               {logLoading ? (
-                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>系统日志读取中...</div>
+                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>读取中...</div>
               ) : auditLogs.length > 0 ? auditLogs.map((log, idx) => (
-                <div key={log.id || idx} style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{
-                      width: '10px', height: '10px', borderRadius: '50%', marginTop: '6px',
-                      background: logColor(log.level)
-                    }}></div>
-                    {idx !== auditLogs.length - 1 && <div style={{ flex: 1, width: '2px', background: 'var(--border-color)', marginTop: '4px' }}></div>}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 560 }}>{log.message}</span>
-                      {log.ip && (
-                        <span style={{
-                          fontSize: '0.72rem',
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          background: 'var(--bg-elevated)',
-                          color: 'var(--text-dim)',
-                          fontFamily: 'monospace',
-                          border: '1px solid var(--border-color)'
-                        }}>IP: {log.ip}</span>
-                      )}
-                    </div>
-                    <div style={{ color: 'var(--text-dim)', fontSize: '0.78rem', marginTop: '4px', lineHeight: 1.55, display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      <span>📂 {log.category}</span>
-                      <span>👤 {log.actor || 'system'}</span>
-                      <span>🕐 {displayBeijingTime(log.created_at)}</span>
+                <div key={log.id || idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '8px', height: '8px', borderRadius: '50%', marginTop: '6px', flexShrink: 0,
+                    background: logColor(log.level)
+                  }}></div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ color: 'var(--text-main)', fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.4 }}>{log.message}</div>
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.74rem', marginTop: '3px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <span>{log.actor || 'system'}</span>
+                      {log.ip && <span style={{ fontFamily: 'monospace' }}>{log.ip}</span>}
+                      <span>{displayBeijingTime(log.created_at)}</span>
                     </div>
                   </div>
                 </div>
               )) : (
-                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>暂无系统日志</div>
+                <div style={{ padding: '36px 0', textAlign: 'center', color: 'var(--text-muted)' }}>暂无日志</div>
               )}
             </div>
           </div>

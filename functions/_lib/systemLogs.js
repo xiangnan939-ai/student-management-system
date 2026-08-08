@@ -55,6 +55,22 @@ export function getClientIp(request) {
     || '';
 }
 
+export function getUserAgent(request) {
+  if (!request) return '';
+  return request.headers.get('User-Agent') || '';
+}
+
+export function getRequestInfo(request) {
+  if (!request) return { ip: '', userAgent: '', method: '', path: '' };
+  const url = new URL(request.url);
+  return {
+    ip: getClientIp(request),
+    userAgent: getUserAgent(request),
+    method: request.method || '',
+    path: url.pathname || '',
+  };
+}
+
 export async function ensureSystemLogStore(db) {
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS system_logs (
@@ -65,6 +81,10 @@ export async function ensureSystemLogStore(db) {
       detail TEXT,
       actor TEXT,
       ip TEXT,
+      user_agent TEXT,
+      target_id TEXT,
+      method TEXT,
+      path TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
@@ -75,8 +95,23 @@ export async function ensureSystemLogStore(db) {
   if (!columnNames.has('ip')) {
     await db.prepare('ALTER TABLE system_logs ADD COLUMN ip TEXT').run();
   }
+  if (!columnNames.has('user_agent')) {
+    await db.prepare('ALTER TABLE system_logs ADD COLUMN user_agent TEXT').run();
+  }
+  if (!columnNames.has('target_id')) {
+    await db.prepare('ALTER TABLE system_logs ADD COLUMN target_id TEXT').run();
+  }
+  if (!columnNames.has('method')) {
+    await db.prepare('ALTER TABLE system_logs ADD COLUMN method TEXT').run();
+  }
+  if (!columnNames.has('path')) {
+    await db.prepare('ALTER TABLE system_logs ADD COLUMN path TEXT').run();
+  }
 
   await db.prepare('CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_system_logs_level ON system_logs(level)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_system_logs_category ON system_logs(category)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_system_logs_actor ON system_logs(actor)').run();
 }
 
 async function purgeOldLogs(db) {
@@ -88,26 +123,37 @@ async function purgeOldLogs(db) {
   }
 }
 
-export async function writeSystemLog(db, input) {
+function normalizeLogInput(input, request) {
+  const reqInfo = request ? getRequestInfo(request) : {};
+  return {
+    level: LOG_LEVELS.has(input?.level) ? input.level : 'info',
+    category: String(input?.category || 'system').trim() || 'system',
+    message: String(input?.message || '').trim(),
+    detail: input?.detail ? String(input.detail).slice(0, 8000) : '',
+    actor: input?.actor ? String(input.actor).trim() : 'system',
+    ip: input?.ip || reqInfo.ip || '',
+    userAgent: input?.userAgent || reqInfo.userAgent || '',
+    targetId: input?.targetId ? String(input.targetId).trim() : '',
+    method: input?.method || reqInfo.method || '',
+    path: input?.path || reqInfo.path || '',
+  };
+}
+
+export async function writeSystemLog(db, input, request) {
   try {
     await ensureSystemLogStore(db);
 
-    const level = LOG_LEVELS.has(input.level) ? input.level : 'info';
-    const category = String(input.category || 'system').trim();
-    const message = String(input.message || '').trim();
-    const detail = input.detail ? String(input.detail).slice(0, 4000) : '';
-    const actor = input.actor ? String(input.actor).trim() : 'system';
-    const ip = input.ip ? String(input.ip).trim() : '';
-    const createdAt = currentBeijingTimestamp();
+    const log = normalizeLogInput(input, request);
+    if (!log.message) return;
 
-    if (!message) return;
+    const createdAt = currentBeijingTimestamp();
 
     await db
       .prepare(`
-        INSERT INTO system_logs (level, category, message, detail, actor, ip, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO system_logs (level, category, message, detail, actor, ip, user_agent, target_id, method, path, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
-      .bind(level, category, message, detail, actor, ip, createdAt)
+      .bind(log.level, log.category, log.message, log.detail, log.actor, log.ip, log.userAgent, log.targetId, log.method, log.path, createdAt)
       .run();
 
     purgeOldLogs(db);
@@ -116,54 +162,94 @@ export async function writeSystemLog(db, input) {
   }
 }
 
-export async function writeErrorLog(db, error, input = {}) {
+export async function writeErrorLog(db, error, input = {}, request) {
   await writeSystemLog(db, {
     level: input.level || 'error',
     category: input.category || 'api',
     message: input.message || error?.message || '系统接口异常',
     detail: error?.stack || error?.message || String(error || ''),
     actor: input.actor || 'system',
-    ip: input.ip || '',
-  });
+    ip: input.ip,
+    userAgent: input.userAgent,
+    targetId: input.targetId,
+    method: input.method,
+    path: input.path,
+  }, request);
+}
+
+function buildLogQuery(options) {
+  const conditions = [];
+  const bindings = [];
+
+  if (options.levels?.length) {
+    const validLevels = options.levels.filter(l => LOG_LEVELS.has(l));
+    if (validLevels.length > 0) {
+      conditions.push(`level IN (${validLevels.map(() => '?').join(', ')})`);
+      bindings.push(...validLevels);
+    }
+  }
+
+  if (options.category) {
+    conditions.push('category = ?');
+    bindings.push(options.category);
+  }
+
+  if (options.actor) {
+    conditions.push('actor LIKE ?');
+    bindings.push(`%${options.actor}%`);
+  }
+
+  if (options.keyword) {
+    conditions.push('(message LIKE ? OR detail LIKE ? OR ip LIKE ? OR target_id LIKE ?)');
+    const kw = `%${options.keyword}%`;
+    bindings.push(kw, kw, kw, kw);
+  }
+
+  if (options.startDate) {
+    conditions.push('created_at >= ?');
+    bindings.push(options.startDate);
+  }
+
+  if (options.endDate) {
+    conditions.push('created_at <= ?');
+    bindings.push(options.endDate);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  return { whereClause, bindings };
+}
+
+export async function countSystemLogs(db, options = {}) {
+  await ensureSystemLogStore(db);
+  purgeOldLogs(db);
+
+  const { whereClause, bindings } = buildLogQuery(options);
+  const row = await db
+    .prepare(`SELECT COUNT(*) AS count FROM system_logs ${whereClause}`)
+    .bind(...bindings)
+    .first();
+  return row?.count || 0;
 }
 
 export async function listSystemLogs(db, options = {}) {
   await ensureSystemLogStore(db);
-
   purgeOldLogs(db);
 
-  const limit = Math.min(Math.max(Number.parseInt(options.limit || '20', 10), 1), 100);
-  const levels = (options.levels || [])
-    .map((level) => String(level).trim())
-    .filter((level) => LOG_LEVELS.has(level));
+  const page = Math.max(Number.parseInt(options.page || '1', 10), 1);
+  const limit = Math.min(Math.max(Number.parseInt(options.limit || (options.paginated ? '20' : '100'), 10), 1), 100);
+  const offset = (page - 1) * limit;
 
-  if (levels.length > 0) {
-    const placeholders = levels.map(() => '?').join(', ');
-    const rows = await db
-      .prepare(`
-        SELECT id, level, category, message, detail, actor, ip, created_at
-        FROM system_logs
-        WHERE level IN (${placeholders})
-        ORDER BY id DESC
-        LIMIT ?
-      `)
-      .bind(...levels, limit)
-      .all();
-
-    return (rows.results || []).map((row) => ({
-      ...row,
-      created_at: formatBeijingTimestamp(row.created_at),
-    }));
-  }
+  const { whereClause, bindings } = buildLogQuery(options);
 
   const rows = await db
     .prepare(`
-      SELECT id, level, category, message, detail, actor, ip, created_at
+      SELECT id, level, category, message, detail, actor, ip, user_agent, target_id, method, path, created_at
       FROM system_logs
+      ${whereClause}
       ORDER BY id DESC
-      LIMIT ?
+      LIMIT ? OFFSET ?
     `)
-    .bind(limit)
+    .bind(...bindings, limit, offset)
     .all();
 
   return (rows.results || []).map((row) => ({

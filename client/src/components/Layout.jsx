@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,12 +10,14 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
+  ScrollText,
 } from 'lucide-react';
 import { authHeaders } from '../api';
 import { displayBeijingTime } from '../time';
 
 const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertLoading, setAlertLoading] = useState(false);
@@ -27,6 +29,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     { path: '/dashboard', name: '系统看板', icon: LayoutDashboard },
     { path: '/students', name: '学籍管理', icon: Users },
     { path: '/courses', name: '课程管理', icon: BookOpen },
+    { path: '/system-logs', name: '系统日志', icon: ScrollText },
     { path: '/settings', name: '系统设置', icon: Settings },
     ...(isAdmin ? [{ path: '/admin-accounts', name: '账号管理', icon: Shield }] : []),
   ];
@@ -36,6 +39,7 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     '/dashboard': '系统看板',
     '/students': '学籍管理 / 学生列表',
     '/courses': '课程管理 / 课程分配体系',
+    '/system-logs': '系统日志 / 操作审计',
     '/settings': '系统设置',
     '/admin-accounts': '账号管理 / 全部管理员'
   };
@@ -305,6 +309,15 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                       暂无报错或崩溃记录
                     </div>
                   )}
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setAlertOpen(false); navigate('/system-logs'); }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}
+                    >
+                      查看全部系统日志 →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

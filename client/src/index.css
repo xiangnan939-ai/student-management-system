@@ -2138,3 +2138,16 @@ button, input, textarea, select, a {
     display: none;
   }
 }
+
+/* Log row interactive */
+.log-row-clickable:hover td {
+  background: var(--table-row-hover);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
