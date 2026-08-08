@@ -50,6 +50,10 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const [replyingId, setReplyingId] = useState(null);
   const replyInputRef = useRef({});
   const bellRef = useRef(null);
+  const bellOpenRef = useRef(false);
+  const bellTabRef = useRef('feedback');
+  const maxSeenAlertIdRef = useRef(0);
+  const [alertsUnread, setAlertsUnread] = useState(false);
 
   const username = currentUser?.username || localStorage.getItem('username') || '管理员';
   const isAdmin = username === 'admin';
@@ -85,6 +89,10 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [bellOpen]);
 
+  // Sync refs for use in callbacks
+  useEffect(() => { bellOpenRef.current = bellOpen; }, [bellOpen]);
+  useEffect(() => { bellTabRef.current = bellTab; }, [bellTab]);
+
   const fetchPendingCount = useCallback(async () => {
     try {
       const res = await fetch('/api/feedback/count', { headers: authHeaders() });
@@ -114,33 +122,86 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     try {
       const res = await fetch(`/api/system-logs?levels=error,crash&limit=${limit}`, { headers: authHeaders() });
       const data = await res.json();
-      if (res.ok) setAlerts(data.data || []);
+      if (res.ok) {
+        const list = data.data || [];
+        setAlerts(list);
+        if (list.length > 0) {
+          const maxId = Math.max(...list.map(a => a.id));
+          if (maxId > maxSeenAlertIdRef.current) {
+            if (!(bellOpenRef.current && bellTabRef.current === 'alerts')) {
+              setAlertsUnread(true);
+            }
+          }
+        }
+        return list;
+      }
     } catch {
       setAlerts([]);
     } finally {
       setAlertLoading(false);
     }
+    return [];
+  }, []);
+
+  const checkForNewAlerts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/system-logs?levels=error,crash&limit=1', { headers: authHeaders() });
+      const data = await res.json();
+      if (res.ok) {
+        const list = data.data || [];
+        if (list.length > 0) {
+          const maxId = list[0].id;
+          if (maxId > maxSeenAlertIdRef.current) {
+            if (bellOpenRef.current && bellTabRef.current === 'alerts') {
+              maxSeenAlertIdRef.current = maxId;
+            } else {
+              setAlertsUnread(true);
+            }
+          }
+        }
+      }
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
     fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 30000);
+    checkForNewAlerts();
+    const interval = setInterval(() => {
+      fetchPendingCount();
+      checkForNewAlerts();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchPendingCount]);
+  }, [fetchPendingCount, checkForNewAlerts]);
 
   const handleBellClick = () => {
     const next = !bellOpen;
     setBellOpen(next);
     if (next) {
-      if (bellTab === 'feedback') fetchFeedbacks();
-      else fetchAlerts(20);
+      if (bellTab === 'feedback') {
+        fetchFeedbacks();
+      } else {
+        fetchAlerts(20).then(list => {
+          if (list.length > 0) {
+            maxSeenAlertIdRef.current = Math.max(...list.map(a => a.id));
+          }
+          setAlertsUnread(false);
+        });
+      }
     }
   };
 
   const switchTab = (tab) => {
     setBellTab(tab);
-    if (tab === 'feedback') fetchFeedbacks();
-    else fetchAlerts(20);
+    if (tab === 'feedback') {
+      fetchFeedbacks();
+    } else {
+      fetchAlerts(20).then(list => {
+        if (list.length > 0) {
+          maxSeenAlertIdRef.current = Math.max(...list.map(a => a.id));
+        }
+        setAlertsUnread(false);
+      });
+    }
   };
 
   const handleReply = async (fbId) => {
@@ -172,7 +233,15 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
         method: 'PUT',
         headers: jsonHeaders(),
       });
-      setFeedbacks(prev => prev.map(fb => fb.id === fbId ? { ...fb, status: 'closed' } : fb));
+      setFeedbacks(prev => prev.map(fb => {
+        if (fb.id === fbId) {
+          if (fb.status === 'pending') {
+            setPendingCount(c => Math.max(0, c - 1));
+          }
+          return { ...fb, status: 'closed' };
+        }
+        return fb;
+      }));
     } catch { /* ignore */ }
   };
 
@@ -186,7 +255,9 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     setIsAuthenticated(false);
   };
 
-  const totalBadge = pendingCount + alerts.length;
+  const hasUnread = pendingCount > 0 || alertsUnread;
+  const showBadgeNumber = pendingCount > 0;
+  const badgeNumber = pendingCount;
 
   return (
     <div className="app-shell admin-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
@@ -320,25 +391,25 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                 style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', padding: '6px' }}
               >
                 <Bell size={20} />
-                {totalBadge > 0 && (
+                {hasUnread && (
                   <span style={{
                     position: 'absolute',
-                    top: '-1px',
-                    right: '-1px',
-                    minWidth: '16px',
-                    height: '16px',
+                    top: showBadgeNumber ? '-1px' : '2px',
+                    right: showBadgeNumber ? '-1px' : '2px',
+                    minWidth: showBadgeNumber ? '16px' : '8px',
+                    height: showBadgeNumber ? '16px' : '8px',
                     background: 'var(--danger)',
-                    borderRadius: '8px',
-                    border: '2px solid var(--bg-surface)',
+                    borderRadius: showBadgeNumber ? '8px' : '4px',
+                    border: showBadgeNumber ? '2px solid var(--bg-surface)' : 'none',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '0.65rem',
                     fontWeight: 700,
                     color: '#fff',
-                    padding: '0 3px',
+                    padding: showBadgeNumber ? '0 3px' : '0',
                   }}>
-                    {totalBadge > 99 ? '99+' : totalBadge}
+                    {showBadgeNumber ? (badgeNumber > 99 ? '99+' : badgeNumber) : ''}
                   </span>
                 )}
               </button>
@@ -416,17 +487,14 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                     >
                       <AlertTriangle size={15} />
                       系统告警
-                      {alerts.length > 0 && (
+                      {alertsUnread && (
                         <span style={{
-                          background: alerts.length > 0 ? 'var(--danger)' : 'var(--text-dim)',
-                          color: '#fff',
-                          fontSize: '0.68rem',
-                          padding: '1px 6px',
-                          borderRadius: '8px',
-                          fontWeight: 700,
-                          minWidth: '18px',
-                          textAlign: 'center',
-                        }}>{alerts.length}</span>
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: 'var(--danger)',
+                          flexShrink: 0,
+                        }}></span>
                       )}
                     </button>
                   </div>
