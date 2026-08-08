@@ -16,6 +16,8 @@ import {
   CheckCircle,
   Clock,
   Trash2,
+  ScrollText,
+  Lock,
 } from 'lucide-react';
 import { authHeaders, clearAuth, jsonHeaders } from '../api';
 import { displayBeijingTime } from '../time';
@@ -61,14 +63,20 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
     { path: '/students', name: '学籍管理', icon: Users },
     { path: '/courses', name: '课程管理', icon: BookOpen },
     { path: '/settings', name: '系统设置', icon: Settings },
-    ...(isAdmin ? [{ path: '/admin-accounts', name: '账号管理', icon: Shield }] : []),
+    ...(isAdmin ? [
+      { path: '/admin-accounts', name: '账号管理', icon: Shield },
+      { type: 'divider' },
+      { path: '/system-logs', name: '系统日志', icon: ScrollText },
+      { path: '/security', name: '安全管理', icon: Lock },
+    ] : []),
   ];
 
   const breadcrumbMap = {
     '/dashboard': '系统看板',
     '/students': '学籍管理 / 学生列表',
     '/courses': '课程管理 / 课程分配体系',
-    '/system-logs': '系统设置 / 操作日志',
+    '/system-logs': '系统日志',
+    '/security': '安全管理 / IP封禁',
     '/settings': '系统设置',
     '/admin-accounts': '账号管理 / 全部管理员'
   };
@@ -373,6 +381,11 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
 
         <nav className="app-nav" style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {navItems.map((item, index) => {
+            if (item.type === 'divider') {
+              return (
+                <div key={`divider-${index}`} style={{ height: '1px', background: 'var(--border-color)', margin: '8px 12px' }} />
+              );
+            }
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (

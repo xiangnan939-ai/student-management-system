@@ -13,6 +13,7 @@ import CourseManagement from './pages/CourseManagement';
 import Settings from './pages/Settings';
 import AdminAccounts from './pages/AdminAccounts';
 import SystemLogs from './pages/SystemLogs';
+import Security from './pages/Security';
 import StudentCourseSelection from './pages/StudentCourseSelection';
 import StudentSettings from './pages/StudentSettings';
 import { applyTheme, DEFAULT_THEME, getStoredTheme, normalizeTheme } from './themes';
@@ -67,6 +68,10 @@ const AppRoutes = ({ isAuthenticated, setIsAuthenticated, currentUser, setCurren
           element={currentUser?.username === 'admin' ? <AdminAccounts /> : <Navigate to="/dashboard" replace />}
         />
         <Route path="system-logs" element={<SystemLogs />} />
+        <Route
+          path="security"
+          element={currentUser?.username === 'admin' ? <Security /> : <Navigate to="/dashboard" replace />}
+        />
       </Route>
       <Route path="/student" element={
         <ProtectedRoute isAuthenticated={isAuthenticated}>

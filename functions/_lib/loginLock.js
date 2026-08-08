@@ -143,3 +143,97 @@ export async function clearIpLock(db, ip) {
     .bind(key)
     .run();
 }
+
+// ========== IP Ban (permanent/temporary blacklist) ==========
+
+export async function ensureIpBanStore(db) {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS ip_bans (
+      ip TEXT PRIMARY KEY,
+      reason TEXT NOT NULL DEFAULT '',
+      banned_by TEXT NOT NULL DEFAULT 'admin',
+      banned_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL DEFAULT 0,   -- 0 = permanent
+      note TEXT NOT NULL DEFAULT ''
+    )
+  `).run();
+}
+
+export async function isIpBanned(db, ip) {
+  await ensureIpBanStore(db);
+  const key = normalizeIp(ip);
+  const row = await db
+    .prepare('SELECT ip, reason, banned_by, banned_at, expires_at, note FROM ip_bans WHERE ip = ?')
+    .bind(key)
+    .first();
+  if (!row) return null;
+
+  const expiresAt = Number(row.expires_at || 0);
+  // If temporary ban expired, auto-remove and return null
+  if (expiresAt > 0 && expiresAt < Date.now()) {
+    await db.prepare('DELETE FROM ip_bans WHERE ip = ?').bind(key).run();
+    return null;
+  }
+  return {
+    ip: row.ip,
+    reason: row.reason,
+    bannedBy: row.banned_by,
+    bannedAt: row.banned_at,
+    expiresAt,
+    permanent: expiresAt === 0,
+    note: row.note,
+  };
+}
+
+export async function banIp(db, ip, { reason = '', note = '', durationMinutes = 0, bannedBy = 'admin' } = {}) {
+  await ensureIpBanStore(db);
+  const key = normalizeIp(ip);
+  if (key === 'unknown') throw new Error('无效的IP地址');
+
+  const now = Date.now();
+  const expiresAt = durationMinutes > 0 ? now + durationMinutes * 60 * 1000 : 0;
+
+  await db
+    .prepare(`
+      INSERT INTO ip_bans (ip, reason, banned_by, banned_at, expires_at, note)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(ip) DO UPDATE SET
+        reason = excluded.reason,
+        banned_by = excluded.banned_by,
+        banned_at = excluded.banned_at,
+        expires_at = excluded.expires_at,
+        note = excluded.note
+    `)
+    .bind(key, reason, bannedBy, now, expiresAt, note)
+    .run();
+
+  // Also clear any login lock for this IP so the ban takes effect immediately
+  await clearIpLock(db, key).catch(() => {});
+
+  return isIpBanned(db, key);
+}
+
+export async function unbanIp(db, ip) {
+  await ensureIpBanStore(db);
+  const key = normalizeIp(ip);
+  await db.prepare('DELETE FROM ip_bans WHERE ip = ?').bind(key).run();
+}
+
+export async function listBannedIps(db) {
+  await ensureIpBanStore(db);
+  // Auto-clean expired bans on listing
+  await db.prepare('DELETE FROM ip_bans WHERE expires_at > 0 AND expires_at < ?').bind(Date.now()).run();
+
+  const rows = await db
+    .prepare('SELECT ip, reason, banned_by, banned_at, expires_at, note FROM ip_bans ORDER BY banned_at DESC')
+    .all();
+  return (rows.results || []).map(row => ({
+    ip: row.ip,
+    reason: row.reason,
+    bannedBy: row.banned_by,
+    bannedAt: row.banned_at,
+    expiresAt: Number(row.expires_at || 0),
+    permanent: Number(row.expires_at || 0) === 0,
+    note: row.note,
+  }));
+}

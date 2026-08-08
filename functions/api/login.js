@@ -2,7 +2,7 @@ import { json, readJson } from '../_lib/db.js';
 import { sessionToken } from '../_lib/auth.js';
 import { ensureAccountStore, getAccountByCredentials, loginUser } from '../_lib/accounts.js';
 import { requireDb } from '../_lib/db.js';
-import { clearIpLock, getIpLock, recordIpFailure } from '../_lib/loginLock.js';
+import { clearIpLock, getIpLock, isIpBanned, recordIpFailure } from '../_lib/loginLock.js';
 import { getClientIp, writeErrorLog, writeSystemLog } from '../_lib/systemLogs.js';
 
 export async function onRequestPost({ request, env }) {
@@ -16,6 +16,19 @@ export async function onRequestPost({ request, env }) {
     // IP-based rate limiting (progressive lockout)
     const lock = await getIpLock(db, ip);
     if (lock) return json(lock, { status: 429 });
+
+    // IP blacklist check
+    const banned = await isIpBanned(db, ip);
+    if (banned) {
+      return json({
+        success: false,
+        locked: true,
+        banned: true,
+        message: `该 IP 已被封禁${banned.reason ? `：${banned.reason}` : ''}${banned.permanent ? '（永久）' : ''}`,
+        reason: banned.reason,
+        permanent: banned.permanent,
+      }, { status: 403 });
+    }
 
     const account = await getAccountByCredentials(db, adminUsername, password);
     if (account) {
