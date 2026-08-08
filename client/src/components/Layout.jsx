@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -15,8 +15,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  X,
-  RefreshCw,
 } from 'lucide-react';
 import { authHeaders, jsonHeaders } from '../api';
 import { displayBeijingTime } from '../time';
@@ -36,7 +34,6 @@ const STATUS_MAP = {
 
 const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [bellTab, setBellTab] = useState('feedback');
@@ -665,22 +662,6 @@ const Layout = ({ setIsAuthenticated, currentUser, setCurrentUser }) => {
                         <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>暂无系统告警</div>
                       )
                     )}
-                  </div>
-
-                  {/* Footer */}
-                  <div style={{ padding: '10px 12px', borderTop: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                    {bellTab === 'feedback' && (
-                      <button type="button" onClick={fetchFeedbacks} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <RefreshCw size={12} /> 刷新
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => { setBellOpen(false); navigate(bellTab === 'feedback' ? '/system-logs' : '/system-logs'); }}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}
-                    >
-                      查看全部 →
-                    </button>
                   </div>
                 </div>
               )}
